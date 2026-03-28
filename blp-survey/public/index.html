@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BLP美好生活规划师 · 潜力挑战赛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px 16px 48px;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 48px 32px 48px 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+            position: relative;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .badge {
+            display: inline-block;
+            background: #ffd966;
+            color: #b45f06;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e3c72, #2b4c8a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 6px;
+        }
+        .sub {
+            font-size: 15px;
+            color: #4a627a;
+            background: #eef3fc;
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 18px 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(46, 91, 150, 0.1);
+        }
+        .q-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a344d;
+            margin-bottom: 16px;
+        }
+        .q-icon {
+            background: #eef2ff;
+            width: 34px;
+            height: 34px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .opt-btn {
+            background: #f8fafd;
+            border: 1.5px solid #e2edf7;
+            border-radius: 60px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f3b5c;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .opt-btn span:first-child {
+            font-weight: 800;
+            background: #eef2fa;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 40px;
+            color: #1f6392;
+        }
+        .opt-btn.selected {
+            background: #eaf4ff;
+            border-color: #1e88e5;
+            box-shadow: 0 4px 10px rgba(30, 136, 229, 0.15);
+        }
+        .opt-btn.selected span:first-child {
+            background: #1e88e5;
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            margin: 24px 0 12px;
+        }
+        .btn-primary {
+            flex: 2;
+            background: linear-gradient(98deg, #1c6fb0, #2a86d4);
+            border: none;
+            padding: 15px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(30, 100, 180, 0.25);
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-secondary {
+            flex: 1;
+            background: #ecf3fa;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            color: #2c6eaf;
+            cursor: pointer;
+        }
+        .result-area {
+            margin-top: 28px;
+            background: linear-gradient(115deg, #fef9e6, #fff7e8);
+            border-radius: 32px;
+            padding: 18px 18px 22px;
+            border-left: 6px solid #ffb347;
+            transition: all 0.3s;
+        }
+        .result-badge {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .result-score {
+            background: #ffde9c;
+            border-radius: 60px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #a45d00;
+        }
+        .result-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2c3e4e;
+            margin: 12px 0 8px;
+        }
+        .result-desc {
+            color: #3a546d;
+            line-height: 1.45;
+            font-size: 15px;
+            margin: 12px 0 8px;
+        }
+        .recruit-btn {
+            background: #f3a712;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 17px;
+            color: #2c2b28;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .share-btn {
+            background: #eef2f5;
+            margin-top: 12px;
+            border: 1px solid #cbdde9;
+            color: #1f5e99;
+        }
+        .gift-box {
+            background: #e6f7e6;
+            border-radius: 24px;
+            padding: 14px;
+            margin: 16px 0 8px;
+            text-align: center;
+            border: 1px solid #b8e0b8;
+            color: #2c6e2c;
+            font-weight: 500;
+        }
+        .gift-box span {
+            font-size: 20px;
+            margin-right: 6px;
+        }
+        .hidden { display: none; }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e2f3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            z-index: 999;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #8ea0b0;
+        }
+        hr {
+            margin: 20px 0 10px;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #cbdbe0, transparent);
+        }
+        .admin-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        .admin-toggle button {
+            background: none;
+            border: none;
+            color: #5f7f9e;
+            font-size: 12px;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 6px 12px;
+            opacity: 0.7;
+        }
+        .admin-panel {
+            background: #f4f9fe;
+            border-radius: 28px;
+            padding: 18px;
+            margin-top: 20px;
+            border: 1px solid #cde1f0;
+            transition: all 0.2s;
+        }
+        .admin-panel h4 {
+            font-size: 16px;
+            color: #1e4663;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-field {
+            margin-bottom: 14px;
+        }
+        .admin-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c6280;
+            margin-bottom: 6px;
+        }
+        .admin-field input, .admin-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 30px;
+            border: 1px solid #c2d6e8;
+            background: white;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .admin-field textarea {
+            border-radius: 20px;
+            resize: vertical;
+        }
+        .admin-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .admin-actions button {
+            flex: 1;
+            background: #e2edf7;
+            border: none;
+            padding: 8px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .admin-actions .save-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .inline-wx {
+            background: #f0f4fa;
+            border-radius: 32px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        @media (max-width: 480px) {
+            .game-container { padding: 20px 16px 28px; }
+            .opt-btn { padding: 12px 14px; }
+            .q-title { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameApp">
+    <div class="hero">
+        <div class="badge">🏆 官方增员 · 诚意招募 🏆</div>
+        <h1>保险超级合伙人</h1>
+        <div class="sub">测测你的 <strong>事业潜力值</strong> → 解锁你的保险企业家天赋</div>
+    </div>
+    <div id="questionsArea"></div>
+    <div class="action-buttons">
+        <button class="btn-primary" id="submitBtn">✨ 揭秘我的潜力 ✨</button>
+        <button class="btn-secondary" id="resetBtn">🔄 重测</button>
+    </div>
+    <div id="resultContainer" class="result-area hidden"></div>
+    <hr />
+    <div style="text-align: center; font-size:13px; color:#5f7f9e;">
+        🎁 完成测评即有机会获得 <strong>「保险事业蓝图1v1规划」</strong><br>
+        行业顶尖导师团队，助你成就高光人生
+    </div>
+    
+    <!-- 合伙人专属后台（可修改微信号+地址等） -->
+    <div class="admin-toggle">
+        <button id="toggleAdminBtn">⚙️ 合伙人专属设置 (定制你的个人页面)</button>
+    </div>
+    <div id="adminPanel" class="admin-panel hidden">
+        <h4>🔧 个性化配置后台</h4>
+        <div class="admin-field">
+            <label>📱 你的增员微信号 (展示 & 复制)</label>
+            <input type="text" id="configWechat" placeholder="例如: cbahluck888" value="cbahcjdx">
+        </div>
+        <div class="admin-field">
+            <label>📍 到访礼品地址 (展示给客户)</label>
+            <input type="text" id="configAddress" placeholder="公司职场地址" value="南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险">
+        </div>
+        <div class="admin-field">
+            <label>📅 活动截止日期</label>
+            <input type="text" id="configDeadline" placeholder="例如: 4月10日" value="4月10日">
+        </div>
+        <div class="admin-field">
+            <label>🎁 额外礼品提示 (可选)</label>
+            <input type="text" id="configGiftExtra" placeholder="展业赋能工具包+1v1规划" value="展业赋能工具包+1v1事业规划">
+        </div>
+        <div class="admin-actions">
+            <button id="saveConfigBtn" class="save-btn">💾 保存配置 (立即生效)</button>
+            <button id="resetConfigBtn">↺ 恢复默认</button>
+        </div>
+        <div style="font-size:12px; margin-top:12px; color:#4d6a8a;">💡 保存后，测评结果页、微信号及分享文案都将自动更新为你专属的内容，分享朋友圈更个性！</div>
+    </div>
+    
+    <footer>🌟 寻找有梦想的合伙人 | 收入无上限 · 时间自主 · 终身事业平台</footer>
+</div>
+<div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    // ---------- 题库 (5题) ----------
+    const questions = [
+        {
+            text: "在社交或工作圈中，你通常扮演什么角色？",
+            icon: "🧠",
+            options: [
+                { label: "A. 核心连接者，主动拓展人脉，乐于分享机会", score: 10 },
+                { label: "B. 倾听思考者，深度链接少数人，注重信任积累", score: 6 }
+            ]
+        },
+        {
+            text: "当遇到拒绝或挫折时，你的第一反应是？",
+            icon: "⚡",
+            options: [
+                { label: "A. 越挫越勇，复盘改进，把拒绝当成成长阶梯", score: 10 },
+                { label: "B. 需要短暂调整，获得团队支持后继续前行", score: 5 }
+            ]
+        },
+        {
+            text: "关于收入与回报，你更认同哪种描述？",
+            icon: "💰",
+            options: [
+                { label: "A. 渴望上不封顶，多劳多得，用努力撬动高收入", score: 10 },
+                { label: "B. 偏好稳健可预期的报酬，同时兼顾成就感", score: 5 }
+            ]
+        },
+        {
+            text: "对于保险行业，你的态度是？",
+            icon: "🏛️",
+            options: [
+                { label: "A. 朝阳行业，愿意深入了解并作为长期事业", score: 10 },
+                { label: "B. 观望中，需要更多成功案例和团队支持", score: 6 }
+            ]
+        },
+        {
+            text: "如果给你一个创业平台，你最看重什么？",
+            icon: "🚀",
+            options: [
+                { label: "A. 品牌实力 + 培训体系 + 晋升公平", score: 10 },
+                { label: "B. 团队氛围好，有人手把手带教", score: 7 }
+            ]
+        }
+    ];
+
+    let selectedScores = [null, null, null, null, null];
+    let optionElements = [];
+
+    // 配置管理 (localStorage)
+    const DEFAULT_CONFIG = {
+        wechat: "cbahcjdx",
+        address: "南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险",
+        deadline: "4月10日",
+        giftExtra: "展业赋能工具包+1v1事业规划"
+    };
+
+    function loadConfig() {
+        try {
+            const saved = localStorage.getItem("blp_partner_config");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return { ...DEFAULT_CONFIG, ...parsed };
+            }
+        } catch(e) {}
+        return { ...DEFAULT_CONFIG };
+    }
+
+    function saveConfigToLocal(config) {
+        localStorage.setItem("blp_partner_config", JSON.stringify(config));
+    }
+
+    let currentConfig = loadConfig();
+
+    function updateConfigFieldUI() {
+        document.getElementById('configWechat').value = currentConfig.wechat;
+        document.getElementById('configAddress').value = currentConfig.address;
+        document.getElementById('configDeadline').value = currentConfig.deadline;
+        document.getElementById('configGiftExtra').value = currentConfig.giftExtra;
+    }
+
+    function persistAndApply(newConfig) {
+        currentConfig = { ...newConfig };
+        saveConfigToLocal(currentConfig);
+        updateConfigFieldUI();
+        showToast("✅ 个性化配置已保存！下次测评结果页将展示你的专属信息");
+        const resultContainer = document.getElementById('resultContainer');
+        if (resultContainer && !resultContainer.classList.contains('hidden')) {
+            showResult(true);
+        }
+    }
+
+    function resetToDefault() {
+        persistAndApply({ ...DEFAULT_CONFIG });
+        showToast("已恢复默认配置，你可以重新修改微信号");
+    }
+
+    function saveFromForm() {
+        const newWechat = document.getElementById('configWechat').value.trim();
+        const newAddress = document.getElementById('configAddress').value.trim();
+        const newDeadline = document.getElementById('configDeadline').value.trim();
+        const newGiftExtra = document.getElementById('configGiftExtra').value.trim();
+        if (!newWechat) {
+            showToast("微信号不能为空，请填写");
+            return;
+        }
+        persistAndApply({
+            wechat: newWechat,
+            address: newAddress || DEFAULT_CONFIG.address,
+            deadline: newDeadline || DEFAULT_CONFIG.deadline,
+            giftExtra: newGiftExtra || DEFAULT_CONFIG.giftExtra
+        });
+    }
+
+    function getCurrentConfig() {
+        return currentConfig;
+    }
+
+    // 测评渲染
+    function renderQuestions() {
+        const container = document.getElementById('questionsArea');
+        container.innerHTML = '';
+        optionElements = [];
+        questions.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'q-title';
+            titleDiv.innerHTML = `<div class="q-icon">${q.icon}</div><div>${q.text}</div>`;
+            card.appendChild(titleDiv);
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+            q.options.forEach((opt, optIdx) => {
+                const btn = document.createElement('div');
+                btn.className = 'opt-btn';
+                btn.setAttribute('data-q', idx);
+                btn.setAttribute('data-opt', optIdx);
+                btn.setAttribute('data-score', opt.score);
+                btn.innerHTML = `<span>${String.fromCharCode(65+optIdx)}</span><span>${opt.label}</span>`;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectOption(idx, optIdx, opt.score);
+                });
+                optionsDiv.appendChild(btn);
+                if (!optionElements[idx]) optionElements[idx] = [];
+                optionElements[idx][optIdx] = btn;
+            });
+            card.appendChild(optionsDiv);
+            container.appendChild(card);
+        });
+        clearAllHighlights();
+        selectedScores = [null, null, null, null, null];
+    }
+
+    function selectOption(qIndex, optIndex, scoreVal) {
+        selectedScores[qIndex] = scoreVal;
+        if (optionElements[qIndex]) {
+            for (let i = 0; i < optionElements[qIndex].length; i++) {
+                const btn = optionElements[qIndex][i];
+                if (i === optIndex) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            }
+        }
+    }
+
+    function clearAllHighlights() {
+        for (let i = 0; i < optionElements.length; i++) {
+            if (optionElements[i]) {
+                for (let j = 0; j < optionElements[i].length; j++) {
+                    if (optionElements[i][j]) optionElements[i][j].classList.remove('selected');
+                }
+            }
+        }
+    }
+
+    function getScoreAndLevel() {
+        const total = selectedScores.reduce((acc, val) => acc + (val || 0), 0);
+        let level = '', title = '', slogan = '';
+        if (total >= 45) {
+            level = '卓越总监级';
+            title = '👑 保险企业家 · 领袖潜质';
+            slogan = '天生领导者，战略视野+强大影响力，适合打造百人团队，共创保险新生态！';
+        } else if (total >= 35) {
+            level = '精英主管级';
+            title = '🚀 金牌合伙人 · 中坚力量';
+            slogan = '目标感强，高情商+抗压力，快速晋升团队主管，享受高额管理津贴与荣誉。';
+        } else if (total >= 25) {
+            level = '潜力新星';
+            title = '🌟 创业新锐 · 未来可期';
+            slogan = '白板起步也无畏！公司提供全套培训+师徒制陪跑，从零到一成为保险专家。';
+        } else {
+            level = '预备新秀';
+            title = '🌱 待发掘的宝藏';
+            slogan = '每个人都拥有无限可能，我们有专业规划师帮你挖掘优势，助你开启事业第二曲线。';
+        }
+        return { total, level, title, slogan };
+    }
+
+    // 上报数据到后端
+    function submitSurveyData(totalScore, level, title, slogan, wechatConfig) {
+        const payload = {
+            totalScore: totalScore,
+            level: level,
+            title: title,
+            slogan: slogan,
+            wechatConfig: wechatConfig
+        };
+        fetch('/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).catch(err => {
+            // 静默失败，不影响用户体验
+            console.warn('数据上报失败（不影响测评）', err);
+        });
+    }
+
+    function showResult(silentRefresh = false) {
+        if (selectedScores.includes(null)) {
+            showToast('请先完成全部5道潜力测试题，再揭秘结果哦 👀');
+            return false;
+        }
+        const { total, level, title, slogan } = getScoreAndLevel();
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.classList.remove('hidden');
+        
+        const cfg = getCurrentConfig();
+        const wechatDisplay = cfg.wechat;
+        const addressDisplay = cfg.address;
+        const deadlineDisplay = cfg.deadline;
+        const giftExtraDisplay = cfg.giftExtra;
+        
+        resultContainer.innerHTML = `
+            <div class="result-badge">
+                <span>🏅 你的潜力指数</span>
+                <span class="result-score">${total}分 / 50分</span>
+            </div>
+            <div class="result-title">${title}</div>
+            <div class="result-desc">
+                <strong>✨ ${level} · 特质解读：</strong> ${slogan}<br><br>
+                🎯 保险行业迎来黄金时代，我们正在寻找像你一样优秀的「保险合伙人」！<br>
+                ✅ 弹性工作时间，兼顾家庭与事业<br>
+                ✅ 国际化培训体系+无限晋升通道<br>
+                ✅ 每年多轮高峰会、荣誉宴、免费环球旅游<br>
+                💎 与优秀者同行，让每一份努力都兑现价值！
+            </div>
+            <div class="gift-box">
+                <span>🎁</span> 凭本页面到访<br>
+		 <strong>${escapeHtml(addressDisplay)}</strong><br>
+                即可领取「精美礼品」一份！<br>
+                <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
+            </div>
+            <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
+                📢 限时增员通道：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
+            </div>
+            <button class="recruit-btn" id="contactRecruitBtn">📲 立即加入 · 领取事业秘籍</button>
+            <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享潜力战绩 · 邀请好友挑战</button>
+            <div class="inline-wx">
+                📱 增员特助微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
+                <span style="font-size:12px; background:#e9ecef; padding:2px 8px; border-radius:30px; margin-left:6px;" id="copyWxBtn">一键复制</span>
+            </div>
+            <div style="font-size:12px; color:#7f8c8d; margin-top:12px;">*添加请备注“合伙人潜力测试” 优先通过；到访请出示本页面截图</div>
+        `;
+
+        // 上报数据（异步，不影响体验）
+        submitSurveyData(total, level, title, slogan, wechatDisplay);
+
+        // 绑定动态按钮事件
+        const contactBtn = document.getElementById('contactRecruitBtn');
+        if (contactBtn) {
+            contactBtn.addEventListener('click', () => {
+                const curWechat = getCurrentConfig().wechat;
+                copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
+                showToast(`📌 微信已复制: ${curWechat} ，期待你的加入`);
+            });
+        }
+        const copyWx = document.getElementById('copyWxBtn');
+        if (copyWx) {
+            copyWx.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const curWechat = getCurrentConfig().wechat;
+                copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你并肩同行！`);
+            });
+        }
+        const shareBtn = document.getElementById('shareResultBtn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                const { total, level, title } = getScoreAndLevel();
+                const curWechat = getCurrentConfig().wechat;
+                const shareText = `🔥我刚刚测出保险事业潜力【${level} · ${title}】得分${total}/50！\n原来我的基因里藏着保险企业家潜质💎 快来挑战「保险超级合伙人」游戏，看看你的天赋值，一起抓住风口机遇！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取专属事业规划秘籍。\n👉 立即测试：`;
+                copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性微信号！');
+            });
+        }
+        if (!silentRefresh) resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return true;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function resetGame() {
+        clearAllHighlights();
+        selectedScores = [null, null, null, null, null];
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.classList.add('hidden');
+        showToast('已重置，重新测试看看你的潜力吧 👊');
+    }
+
+    function showToast(msg, duration = 2000) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, duration);
+    }
+
+    function copyToClipboard(text, successMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg || '复制成功！');
+            }).catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (success) showToast('复制成功，快去分享吧！');
+        else showToast('手动复制一下哦');
+    }
+
+    function bindGlobalEvents() {
+        document.getElementById('submitBtn').addEventListener('click', () => showResult());
+        document.getElementById('resetBtn').addEventListener('click', () => resetGame());
+        
+        const toggleBtn = document.getElementById('toggleAdminBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        toggleBtn.addEventListener('click', () => {
+            adminPanel.classList.toggle('hidden');
+            if (!adminPanel.classList.contains('hidden')) {
+                updateConfigFieldUI();
+            }
+        });
+        document.getElementById('saveConfigBtn').addEventListener('click', saveFromForm);
+        document.getElementById('resetConfigBtn').addEventListener('click', resetToDefault);
+    }
+
+    function init() {
+        renderQuestions();
+        bindGlobalEvents();
+        updateConfigFieldUI();
+        currentConfig = loadConfig();
+    }
+    init();
+</script>
+</body>
+</html>
