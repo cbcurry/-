@@ -243,6 +243,7 @@ app.get('/admin', async (req, res) => {
         res.status(500).send('数据库查询失败：' + err.message);
     }
 });
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
