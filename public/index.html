@@ -732,6 +732,23 @@
         copyToClipboard(text, "已复制全部线索到剪贴板");
     }
 
+// 检查手机号是否已存在
+function isPhoneExists(phone) {
+    const submissions = loadSubmissions();
+    return submissions.some(record => record.phone === phone);
+}
+
+// 修改 recordSubmission 调用处（在 showContactModal 回调中）
+if (name && phone) {
+    if (isPhoneExists(phone)) {
+        showToast('该手机号已提交过，不可重复提交');
+        return;
+    }
+    recordSubmission(name, phone, total, level, title);
+    submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+    showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+}
+
     // 记录提交（姓名+手机号+测评结果）
     function recordSubmission(name, phone, totalScore, level, title) {
         if (!name || !phone) return;
