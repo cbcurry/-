@@ -110,15 +110,139 @@ app.get('/admin', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM survey_results ORDER BY created_at DESC LIMIT 200');
         const rows = result.rows;
-        // 此处插入上面提供的/admin完整HTML代码（略）
-        // 由于长度限制，请复制上面给出的/admin代码
-        // ... 
+        let html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>测评数据统计</title>
+                <style>
+                    body { font-family: system-ui; padding: 20px; background: #f5f7fb; }
+                    table { border-collapse: collapse; width: 100%; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+                    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+                    th { background: #1e4663; color: white; }
+                    tr:nth-child(even) { background: #f9f9fc; }
+                    .container { max-width: 1400px; margin: 0 auto; }
+                    h1 { color: #1e3c72; margin-bottom: 20px; }
+                    button { cursor: pointer; padding: 4px 8px; margin: 0 2px; border: none; border-radius: 6px; }
+                    .edit-btn { background: #2a86d4; color: white; }
+                    .delete-btn { background: #dc3545; color: white; }
+                    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+                    .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 16px; padding: 20px; }
+                    .modal-content input { width: 100%; margin-bottom: 12px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+                    .modal-buttons { text-align: right; margin-top: 16px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>📊 保险合伙人潜力测评统计</h1>
+                    <p>共 ${rows.length} 条记录</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>姓名</th><th>手机号</th><th>总分</th>
+                                <th>等级</th><th>标题</th><th>微信号配置</th><th>IP</th><th>时间</th><th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        for (const row of rows) {
+            html += `
+                <tr data-id="${row.id}">
+                    <td>${row.id}</td>
+                    <td class="name">${escapeHtml(row.name)}</td>
+                    <td class="phone">${escapeHtml(row.phone)}</td>
+                    <td>${row.total_score}</td>
+                    <td>${escapeHtml(row.level)}</td>
+                    <td>${escapeHtml(row.title)}</td>
+                    <td>${escapeHtml(row.wechat_config)}</td>
+                    <td>${escapeHtml(row.ip)}</td>
+                    <td>${row.created_at}</td>
+                    <td>
+                        <button class="edit-btn" data-id="${row.id}">编辑</button>
+                        <button class="delete-btn" data-id="${row.id}">删除</button>
+                    </td>
+                </tr>
+            `;
+        }
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+                <div id="editModal" class="modal">
+                    <div class="modal-content">
+                        <h3>编辑记录</h3>
+                        <input type="text" id="editName" placeholder="姓名">
+                        <input type="tel" id="editPhone" placeholder="手机号">
+                        <input type="number" id="editScore" placeholder="总分">
+                        <input type="text" id="editLevel" placeholder="等级">
+                        <input type="text" id="editTitle" placeholder="标题">
+                        <input type="text" id="editWechat" placeholder="微信号配置">
+                        <div class="modal-buttons">
+                            <button id="saveEditBtn">保存</button>
+                            <button id="closeModalBtn">取消</button>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    const modal = document.getElementById('editModal');
+                    let currentId = null;
+
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const row = btn.closest('tr');
+                            currentId = btn.dataset.id;
+                            document.getElementById('editName').value = row.querySelector('.name').innerText;
+                            document.getElementById('editPhone').value = row.querySelector('.phone').innerText;
+                            document.getElementById('editScore').value = row.cells[3].innerText;
+                            document.getElementById('editLevel').value = row.cells[4].innerText;
+                            document.getElementById('editTitle').value = row.cells[5].innerText;
+                            document.getElementById('editWechat').value = row.cells[6].innerText;
+                            modal.style.display = 'flex';
+                        });
+                    });
+
+                    document.getElementById('saveEditBtn').addEventListener('click', async () => {
+                        const data = {
+                            name: document.getElementById('editName').value,
+                            phone: document.getElementById('editPhone').value,
+                            totalScore: parseInt(document.getElementById('editScore').value),
+                            level: document.getElementById('editLevel').value,
+                            title: document.getElementById('editTitle').value,
+                            wechatConfig: document.getElementById('editWechat').value
+                        };
+                        const res = await fetch('/api/records/' + currentId, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        if (res.ok) location.reload();
+                        else alert('更新失败');
+                    });
+
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            if (confirm('确定删除该记录吗？')) {
+                                const res = await fetch('/api/records/' + btn.dataset.id, { method: 'DELETE' });
+                                if (res.ok) location.reload();
+                                else alert('删除失败');
+                            }
+                        });
+                    });
+
+                    document.getElementById('closeModalBtn').addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                </script>
+            </body>
+            </html>
+        `;
         res.send(html);
     } catch (err) {
-        res.status(500).send('数据库查询失败');
+        console.error('查询失败:', err);
+        res.status(500).send('数据库查询失败：' + err.message);
     }
 });
-
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
