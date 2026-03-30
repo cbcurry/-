@@ -2,64 +2,142 @@ const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 中间件
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// PostgreSQL 连接池（使用环境变量 DATABASE_URL）
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// 数据库初始化：建表、添加字段、唯一约束
+// ================== 数据库初始化 ==================
 (async () => {
     try {
         await pool.query('SELECT NOW()');
         console.log('✅ 数据库连接成功');
 
-        // 创建表
+        // 创建 partners 表（如果不存在）
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS survey_results (
+            CREATE TABLE IF NOT EXISTS partners (
                 id SERIAL PRIMARY KEY,
-                total_score INTEGER,
-                level TEXT,
-                title TEXT,
-                slogan TEXT,
-                wechat_config TEXT,
-                name TEXT,
-                phone TEXT,
-                user_agent TEXT,
-                ip TEXT,
+                token VARCHAR(64) UNIQUE NOT NULL,
+                wechat VARCHAR(100),
+                address TEXT,
+                deadline VARCHAR(50),
+                gift_extra TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        console.log('✅ 表结构检查完成');
 
-        // 添加唯一约束（确保手机号不重复）
-        try {
-            await pool.query(`
-                ALTER TABLE survey_results 
-                ADD CONSTRAINT IF NOT EXISTS unique_phone UNIQUE (phone)
-            `);
-            console.log('✅ 唯一约束已添加');
-        } catch (err) {
-            console.log('唯一约束可能已存在或数据重复，跳过', err.message);
-        }
+        // 添加 partner_id 字段（如果不存在）
+        await pool.query(`
+            ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS partner_id INTEGER REFERENCES partners(id)
+        `);
+
+        // 添加 name / phone 字段（如果不存在）
+        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS name TEXT`);
+        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS phone TEXT`);
+
+        // 唯一约束：同一个合伙人下，手机号不能重复
+        await pool.query(`ALTER TABLE survey_results DROP CONSTRAINT IF EXISTS unique_phone`);
+        await pool.query(`
+            ALTER TABLE survey_results ADD CONSTRAINT unique_partner_phone UNIQUE (partner_id, phone)
+        `).catch(err => console.log('唯一约束可能已存在', err.message));
+
+        console.log('✅ 数据库初始化完成');
     } catch (err) {
         console.error('数据库初始化失败:', err.message);
     }
 })();
 
-// 接收测评数据（含姓名手机号，并校验唯一性）
+// ================== 合伙人 API ==================
+
+// 获取合伙人信息
+app.get('/api/partner/:token', async (req, res) => {
+    const { token } = req.params;
+    try {
+        const result = await pool.query('SELECT * FROM partners WHERE token = $1', [token]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: '合伙人不存在' });
+        }
+        const partner = result.rows[0];
+        res.json({
+            id: partner.id,
+            token: partner.token,
+            wechat: partner.wechat || '',
+            address: partner.address || '',
+            deadline: partner.deadline || '',
+            giftExtra: partner.gift_extra || ''
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '查询失败' });
+    }
+});
+
+// 更新合伙人配置
+app.put('/api/partner/:token', async (req, res) => {
+    const { token } = req.params;
+    const { wechat, address, deadline, giftExtra } = req.body;
+    try {
+        await pool.query(
+            `UPDATE partners SET wechat = $1, address = $2, deadline = $3, gift_extra = $4 WHERE token = $5`,
+            [wechat, address, deadline, giftExtra, token]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '更新失败' });
+    }
+});
+
+// 获取合伙人的所有客户提交记录
+app.get('/api/partner/:token/records', async (req, res) => {
+    const { token } = req.params;
+    try {
+        const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [token]);
+        if (partner.rows.length === 0) return res.status(404).json({ error: '合伙人不存在' });
+        const partnerId = partner.rows[0].id;
+        const records = await pool.query(
+            `SELECT * FROM survey_results WHERE partner_id = $1 ORDER BY created_at DESC LIMIT 500`,
+            [partnerId]
+        );
+        res.json(records.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '查询失败' });
+    }
+});
+
+// 删除某条记录（仅限该合伙人的记录）
+app.delete('/api/partner/:token/records/:id', async (req, res) => {
+    const { token, id } = req.params;
+    try {
+        const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [token]);
+        if (partner.rows.length === 0) return res.status(404).json({ error: '合伙人不存在' });
+        const partnerId = partner.rows[0].id;
+        const result = await pool.query(
+            'DELETE FROM survey_results WHERE id = $1 AND partner_id = $2 RETURNING id',
+            [id, partnerId]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: '记录不存在或无权删除' });
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '删除失败' });
+    }
+});
+
+// ================== 客户提交测评 ==================
 app.post('/api/submit', async (req, res) => {
-    const { totalScore, level, title, slogan, wechatConfig, name, phone } = req.body;
+    const { totalScore, level, title, slogan, wechatConfig, name, phone, partnerToken } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
 
@@ -68,11 +146,18 @@ app.post('/api/submit', async (req, res) => {
     }
 
     try {
+        // 查找合伙人 ID
+        let partnerId = null;
+        if (partnerToken) {
+            const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [partnerToken]);
+            if (partner.rows.length > 0) partnerId = partner.rows[0].id;
+        }
+
         const result = await pool.query(
             `INSERT INTO survey_results 
-             (total_score, level, title, slogan, wechat_config, name, phone, user_agent, ip)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-            [totalScore, level, title, slogan, wechatConfig, name || '', phone || '', userAgent, ip]
+             (total_score, level, title, slogan, wechat_config, name, phone, user_agent, ip, partner_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [totalScore, level, title, slogan, wechatConfig, name || '', phone || '', userAgent, ip, partnerId]
         );
         res.json({ success: true, id: result.rows[0].id });
     } catch (err) {
@@ -84,187 +169,12 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// 编辑记录
-app.put('/api/records/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
-    const { name, phone, totalScore, level, title, wechatConfig } = req.body;
-    try {
-        await pool.query(
-            `UPDATE survey_results SET 
-                name = $1, phone = $2, total_score = $3, level = $4, 
-                title = $5, wechat_config = $6 
-             WHERE id = $7`,
-            [name, phone, totalScore, level, title, wechatConfig, id]
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error('更新失败:', err);
-        res.status(500).json({ error: '更新失败' });
-    }
-});
-
-// 删除记录
-app.delete('/api/records/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
-    try {
-        await pool.query('DELETE FROM survey_results WHERE id = $1', [id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('删除失败:', err);
-        res.status(500).json({ error: '删除失败' });
-    }
-});
-
-// 管理后台（带编辑/删除功能的HTML页面）
+// 可选：全局后台（仅管理员查看，可根据需要关闭）
 app.get('/admin', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM survey_results ORDER BY created_at DESC LIMIT 200');
-        const rows = result.rows;
-        let html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>测评数据统计</title>
-                <style>
-                    body { font-family: system-ui; padding: 20px; background: #f5f7fb; }
-                    table { border-collapse: collapse; width: 100%; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-                    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
-                    th { background: #1e4663; color: white; }
-                    tr:nth-child(even) { background: #f9f9fc; }
-                    .container { max-width: 1400px; margin: 0 auto; }
-                    h1 { color: #1e3c72; margin-bottom: 20px; }
-                    button { cursor: pointer; padding: 4px 8px; margin: 0 2px; border: none; border-radius: 6px; }
-                    .edit-btn { background: #2a86d4; color: white; }
-                    .delete-btn { background: #dc3545; color: white; }
-                    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-                    .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 16px; padding: 20px; }
-                    .modal-content input { width: 100%; margin-bottom: 12px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
-                    .modal-buttons { text-align: right; margin-top: 16px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>📊 保险合伙人潜力测评统计</h1>
-                    <p>共 ${rows.length} 条记录</p>
-                     <table>
-                        <thead>
-                             <tr>
-                                <th>ID</th><th>姓名</th><th>手机号</th><th>总分</th>
-                                <th>等级</th><th>标题</th><th>微信号配置</th><th>IP</th><th>时间</th><th>操作</th>
-                             </tr>
-                        </thead>
-                        <tbody>
-        `;
-        for (const row of rows) {
-            html += `
-                <tr data-id="${row.id}">
-                    <td>${row.id}</td>
-                    <td class="name">${escapeHtml(row.name)}</td>
-                    <td class="phone">${escapeHtml(row.phone)}</td>
-                    <td>${row.total_score}</td>
-                    <td>${escapeHtml(row.level)}</td>
-                    <td>${escapeHtml(row.title)}</td>
-                    <td>${escapeHtml(row.wechat_config)}</td>
-                    <td>${escapeHtml(row.ip)}</td>
-                    <td>${row.created_at}</td>
-                    <td>
-                        <button class="edit-btn" data-id="${row.id}">编辑</button>
-                        <button class="delete-btn" data-id="${row.id}">删除</button>
-                    </td>
-                </tr>
-            `;
-        }
-        html += `
-                        </tbody>
-                    </table>
-                </div>
-                <div id="editModal" class="modal">
-                    <div class="modal-content">
-                        <h3>编辑记录</h3>
-                        <input type="text" id="editName" placeholder="姓名">
-                        <input type="tel" id="editPhone" placeholder="手机号">
-                        <input type="number" id="editScore" placeholder="总分">
-                        <input type="text" id="editLevel" placeholder="等级">
-                        <input type="text" id="editTitle" placeholder="标题">
-                        <input type="text" id="editWechat" placeholder="微信号配置">
-                        <div class="modal-buttons">
-                            <button id="saveEditBtn">保存</button>
-                            <button id="closeModalBtn">取消</button>
-                        </div>
-                    </div>
-                </div>
-                <script>
-                    const modal = document.getElementById('editModal');
-                    let currentId = null;
-
-                    document.querySelectorAll('.edit-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const row = btn.closest('tr');
-                            currentId = btn.dataset.id;
-                            document.getElementById('editName').value = row.querySelector('.name').innerText;
-                            document.getElementById('editPhone').value = row.querySelector('.phone').innerText;
-                            document.getElementById('editScore').value = row.cells[3].innerText;
-                            document.getElementById('editLevel').value = row.cells[4].innerText;
-                            document.getElementById('editTitle').value = row.cells[5].innerText;
-                            document.getElementById('editWechat').value = row.cells[6].innerText;
-                            modal.style.display = 'flex';
-                        });
-                    });
-
-                    document.getElementById('saveEditBtn').addEventListener('click', async () => {
-                        const data = {
-                            name: document.getElementById('editName').value,
-                            phone: document.getElementById('editPhone').value,
-                            totalScore: parseInt(document.getElementById('editScore').value),
-                            level: document.getElementById('editLevel').value,
-                            title: document.getElementById('editTitle').value,
-                            wechatConfig: document.getElementById('editWechat').value
-                        };
-                        const res = await fetch('/api/records/' + currentId, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-                        if (res.ok) location.reload();
-                        else alert('更新失败');
-                    });
-
-                    document.querySelectorAll('.delete-btn').forEach(btn => {
-                        btn.addEventListener('click', async () => {
-                            if (confirm('确定删除该记录吗？')) {
-                                const res = await fetch('/api/records/' + btn.dataset.id, { method: 'DELETE' });
-                                if (res.ok) location.reload();
-                                else alert('删除失败');
-                            }
-                        });
-                    });
-
-                    document.getElementById('closeModalBtn').addEventListener('click', () => {
-                        modal.style.display = 'none';
-                    });
-                </script>
-            </body>
-            </html>
-        `;
-        res.send(html);
-    } catch (err) {
-        console.error('查询失败:', err);
-        res.status(500).send('数据库查询失败：' + err.message);
-    }
+    res.send('全局后台已移至合伙人后台，请使用 /partner.html?token=xxx 访问');
 });
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
+// ================== 启动服务 ==================
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`管理后台: http://localhost:${PORT}/admin`);
 });
