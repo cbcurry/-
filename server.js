@@ -35,6 +35,21 @@ pool.query(`
     )
 `).catch(err => console.error('创建表失败:', err));
 
+async function ensureColumns() {
+    try {
+        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS name TEXT`);
+        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS phone TEXT`);
+        console.log('✅ 字段已确保存在');
+    } catch (err) {
+        console.error('添加字段失败:', err.message);
+    }
+}
+// 在数据库连接成功后调用
+pool.query('SELECT NOW()').then(() => {
+    console.log('✅ 数据库连接成功');
+    ensureColumns();
+}).catch(err => console.error('连接失败:', err));
+
 // 接收测评数据
 app.post('/api/submit', async (req, res) => {
     const { totalScore, level, title, slogan, wechatConfig, name, phone } = req.body;
