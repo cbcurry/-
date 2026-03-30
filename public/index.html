@@ -860,96 +860,112 @@
         }
     }
 
-    // 渲染结果（不带自动记录）
-    function renderResult(resultData) {
-        const { total, level, title, slogan } = resultData;
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.classList.remove('hidden');
-        
-        const cfg = getCurrentConfig();
-        const wechatDisplay = cfg.wechat;
-        const addressDisplay = cfg.address;
-        const deadlineDisplay = cfg.deadline;
-        const giftExtraDisplay = cfg.giftExtra;
-        
-        resultContainer.innerHTML = `
-            <div class="result-badge">
-                <span>🏅 你的潜力指数</span>
-                <span class="result-score">${total}分 / 50分</span>
-            </div>
-            <div class="result-title">${title}</div>
-            <div class="result-desc">
-                <strong>✨ ${level} · 特质解读：</strong> ${slogan}<br><br>
-                🎯 保险行业迎来黄金时代，我们正在寻找像你一样优秀的「保险合伙人」！<br>
-                ✅ 弹性工作时间，兼顾家庭与事业<br>
-                ✅ 国际化培训体系+无限晋升通道<br>
-                ✅ 每年多轮高峰会、荣誉宴、免费环球旅游<br>
-                💎 与优秀者同行，让每一份努力都兑现价值！
-            </div>
-            <div class="gift-box">
-                <span>🎁</span> 凭本页面到访<br>
-		 <strong>${escapeHtml(addressDisplay)}</strong><br>
-                即可领取「精美礼品」一份！<br>
-                <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
-            </div>
-            <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
-                📢 限时增员通道：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
-            </div>
-            <button class="recruit-btn" id="contactRecruitBtn">📲 立即加入 · 领取事业秘籍</button>
-            <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享潜力战绩 · 邀请好友挑战</button>
-            <div class="inline-wx">
-                📱 增员特助微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
-                <span style="font-size:12px; background:#e9ecef; padding:2px 8px; border-radius:30px; margin-left:6px;" id="copyWxBtn">一键复制</span>
-            </div>
-            <div style="font-size:12px; color:#7f8c8d; margin-top:12px;">*添加请备注“合伙人潜力测试” 优先通过；到访请出示本页面截图</div>
-        `;
+   // 渲染结果（不带自动记录）
+function renderResult(resultData) {
+    const { total, level, title, slogan } = resultData;
+    const resultContainer = document.getElementById('resultContainer');
+    resultContainer.classList.remove('hidden');
+    
+    const cfg = getCurrentConfig();
+    const wechatDisplay = cfg.wechat;
+    const addressDisplay = cfg.address;
+    const deadlineDisplay = cfg.deadline;
+    const giftExtraDisplay = cfg.giftExtra;
+    
+    resultContainer.innerHTML = `
+        <div class="result-badge">
+            <span>🏅 你的潜力指数</span>
+            <span class="result-score">${total}分 / 50分</span>
+        </div>
+        <div class="result-title">${title}</div>
+        <div class="result-desc">
+            <strong>✨ ${level} · 特质解读：</strong> ${slogan}<br><br>
+            🎯 保险行业迎来黄金时代，我们正在寻找像你一样优秀的「保险合伙人」！<br>
+            ✅ 弹性工作时间，兼顾家庭与事业<br>
+            ✅ 国际化培训体系+无限晋升通道<br>
+            ✅ 每年多轮高峰会、荣誉宴、免费环球旅游<br>
+            💎 与优秀者同行，让每一份努力都兑现价值！
+        </div>
+        <div class="gift-box">
+            <span>🎁</span> 凭本页面到访<br>
+     <strong>${escapeHtml(addressDisplay)}</strong><br>
+            即可领取「精美礼品」一份！<br>
+            <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
+        </div>
+        <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
+            📢 限时增员通道：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
+        </div>
+        <button class="recruit-btn" id="contactRecruitBtn">📲 立即加入 · 领取事业秘籍</button>
+        <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享潜力战绩 · 邀请好友挑战</button>
+        <div class="inline-wx">
+            📱 增员特助微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
+            <span style="font-size:12px; background:#e9ecef; padding:2px 8px; border-radius:30px; margin-left:6px;" id="copyWxBtn">一键复制</span>
+        </div>
+        <div style="font-size:12px; color:#7f8c8d; margin-top:12px;">*添加请备注“合伙人潜力测试” 优先通过；到访请出示本页面截图</div>
+    `;
 
-        // 绑定立即加入按钮：弹出模态框收集信息，保存记录并复制微信号
-        const contactBtn = document.getElementById('contactRecruitBtn');
-        if (contactBtn) {
-            const newBtn = contactBtn.cloneNode(true);
-            contactBtn.parentNode.replaceChild(newBtn, contactBtn);
-            newBtn.addEventListener('click', async () => {
-                showContactModal(async (name, phone) => {
-                    if (name && phone) {
-                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
-                        if (success) {
-                            recordSubmission(name, phone, total, level, title);
-                            showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
-                        }
+    // 防止重复提交的标记
+    let alreadySubmitted = false;
+
+    // 绑定立即加入按钮：弹出模态框收集信息，保存记录并复制微信号
+    const contactBtn = document.getElementById('contactRecruitBtn');
+    if (contactBtn) {
+        const newBtn = contactBtn.cloneNode(true);
+        contactBtn.parentNode.replaceChild(newBtn, contactBtn);
+        newBtn.addEventListener('click', async () => {
+            if (alreadySubmitted) {
+                showToast('您已提交过信息，感谢参与！');
+                return;
+            }
+            showContactModal(async (name, phone) => {
+                if (name && phone) {
+                    // 标记已提交，防止再次弹窗
+                    alreadySubmitted = true;
+                    newBtn.textContent = '✅ 已提交，我们将尽快联系您';
+                    newBtn.disabled = true;
+                    newBtn.style.opacity = '0.6';
+                    newBtn.style.cursor = 'not-allowed';
+
+                    const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                    if (success) {
+                        recordSubmission(name, phone, total, level, title);
+                        showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+                    } else {
+                        showToast(`提交遇到问题，但已记录您的意向，工作人员会联系您。`);
                     }
-                    // 无论是否填写，都复制微信号
-                    const curWechat = getCurrentConfig().wechat;
-                    copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
-                });
-            });
-        }
-
-        // 复制微信号按钮
-        const copyWx = document.getElementById('copyWxBtn');
-        if (copyWx) {
-            const newCopy = copyWx.cloneNode(true);
-            copyWx.parentNode.replaceChild(newCopy, copyWx);
-            newCopy.addEventListener('click', (e) => {
-                e.stopPropagation();
+                }
+                // 无论是否填写，都复制微信号
                 const curWechat = getCurrentConfig().wechat;
-                copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你并肩同行！`);
+                copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
             });
-        }
-
-        // 分享按钮
-        const shareBtn = document.getElementById('shareResultBtn');
-        if (shareBtn) {
-            const newShare = shareBtn.cloneNode(true);
-            shareBtn.parentNode.replaceChild(newShare, shareBtn);
-            newShare.addEventListener('click', () => {
-                const { total, level, title } = getScoreAndLevel();
-                const curWechat = getCurrentConfig().wechat;
-                const shareText = `🔥我刚刚测出保险事业潜力【${level} · ${title}】得分${total}/50！\n原来我的基因里藏着保险企业家潜质💎 快来挑战「保险超级合伙人」游戏，看看你的天赋值，一起抓住风口机遇！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取专属事业规划秘籍。\n👉 立即测试：`;
-                copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性微信号！');
-            });
-        }
+        });
     }
+
+    // 复制微信号按钮
+    const copyWx = document.getElementById('copyWxBtn');
+    if (copyWx) {
+        const newCopy = copyWx.cloneNode(true);
+        copyWx.parentNode.replaceChild(newCopy, copyWx);
+        newCopy.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const curWechat = getCurrentConfig().wechat;
+            copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你并肩同行！`);
+        });
+    }
+
+    // 分享按钮
+    const shareBtn = document.getElementById('shareResultBtn');
+    if (shareBtn) {
+        const newShare = shareBtn.cloneNode(true);
+        shareBtn.parentNode.replaceChild(newShare, shareBtn);
+        newShare.addEventListener('click', () => {
+            const { total, level, title } = getScoreAndLevel();
+            const curWechat = getCurrentConfig().wechat;
+            const shareText = `🔥我刚刚测出保险事业潜力【${level} · ${title}】得分${total}/50！\n原来我的基因里藏着保险企业家潜质💎 快来挑战「保险超级合伙人」游戏，看看你的天赋值，一起抓住风口机遇！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取专属事业规划秘籍。\n👉 立即测试：`;
+            copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性微信号！');
+        });
+    }
+}
 
     // 模态框逻辑（收集姓名+手机号）
     let isShowingModal = false;
