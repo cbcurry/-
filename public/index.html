@@ -336,6 +336,53 @@
             background: #2a86d4;
             color: white;
         }
+        .stats-area {
+            margin-top: 20px;
+            border-top: 1px solid #cde1f0;
+            padding-top: 16px;
+        }
+        .stats-area h5 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .stats-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 20px;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .stats-item {
+            border-bottom: 1px solid #e2edf7;
+            padding: 10px 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .stats-item .info {
+            flex: 2;
+        }
+        .stats-item .time {
+            color: #6c86a3;
+            font-size: 11px;
+        }
+        .stats-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .stats-actions button {
+            flex: 1;
+            background: #eef2f5;
+            border: none;
+            border-radius: 30px;
+            padding: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
         .inline-wx {
             background: #f0f4fa;
             border-radius: 32px;
@@ -346,6 +393,69 @@
             font-size: 13px;
             font-weight: 500;
             margin-top: 8px;
+        }
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            width: 85%;
+            max-width: 340px;
+            border-radius: 32px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .modal-content p {
+            font-size: 14px;
+            color: #4a627a;
+            margin-bottom: 20px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbdde9;
+            border-radius: 60px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-buttons .confirm-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .modal-buttons .cancel-btn {
+            background: #ecf3fa;
+            color: #2c6eaf;
         }
         @media (max-width: 480px) {
             .game-container { padding: 20px 16px 28px; }
@@ -373,9 +483,9 @@
         行业顶尖导师团队，助你成就高光人生
     </div>
     
-    <!-- 合伙人专属后台（可修改微信号+地址等） -->
+    <!-- 合伙人专属后台（含统计记录） -->
     <div class="admin-toggle">
-        <button id="toggleAdminBtn">⚙️ 合伙人专属设置 (定制你的个人页面)</button>
+        <button id="toggleAdminBtn">⚙️ 合伙人专属设置 & 线索统计</button>
     </div>
     <div id="adminPanel" class="admin-panel hidden">
         <h4>🔧 个性化配置后台</h4>
@@ -399,11 +509,40 @@
             <button id="saveConfigBtn" class="save-btn">💾 保存配置 (立即生效)</button>
             <button id="resetConfigBtn">↺ 恢复默认</button>
         </div>
-        <div style="font-size:12px; margin-top:12px; color:#4d6a8a;">💡 保存后，测评结果页、微信号及分享文案都将自动更新为你专属的内容，分享朋友圈更个性！</div>
+        
+        <!-- 统计区域：展示所有提交记录（姓名+手机号+测评结果） -->
+        <div class="stats-area">
+            <h5>📋 提交记录统计（姓名 + 手机号）</h5>
+            <div id="statsList" class="stats-list">
+                <div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>
+            </div>
+            <div class="stats-actions">
+                <button id="copyStatsBtn">📋 复制全部记录</button>
+                <button id="clearStatsBtn">🗑️ 清空所有记录</button>
+            </div>
+            <div style="font-size:11px; color:#6f8faa; margin-top:8px;">*数据保存在您的浏览器中，仅记录已填写姓名+手机号的提交</div>
+        </div>
+        
+        <div style="font-size:12px; margin-top:12px; color:#4d6a8a;">💡 保存配置后，测评结果页、微信号及分享文案都将自动更新为你专属的内容，分享朋友圈更个性！</div>
     </div>
     
     <footer>🌟 寻找有梦想的合伙人 | 收入无上限 · 时间自主 · 终身事业平台</footer>
 </div>
+
+<!-- 联系方式模态框（姓名+手机号） -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <h3>🎁 领取专属礼品与规划</h3>
+        <p>填写信息后，我们将为您安排1v1事业咨询，并赠送专属礼品</p>
+        <input type="text" id="modalNameInput" class="modal-input" placeholder="姓名" autocomplete="off">
+        <input type="tel" id="modalPhoneInput" class="modal-input" placeholder="手机号" autocomplete="off">
+        <div class="modal-buttons">
+            <button id="modalConfirmBtn" class="confirm-btn">确认并复制微信</button>
+            <button id="modalCancelBtn" class="cancel-btn">暂不填写</button>
+        </div>
+    </div>
+</div>
+
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
@@ -453,6 +592,7 @@
 
     let selectedScores = [null, null, null, null, null];
     let optionElements = [];
+    let currentResult = null; // 存储当前测评结果
 
     // 配置管理 (localStorage)
     const DEFAULT_CONFIG = {
@@ -492,8 +632,8 @@
         updateConfigFieldUI();
         showToast("✅ 个性化配置已保存！下次测评结果页将展示你的专属信息");
         const resultContainer = document.getElementById('resultContainer');
-        if (resultContainer && !resultContainer.classList.contains('hidden')) {
-            showResult(true);
+        if (resultContainer && !resultContainer.classList.contains('hidden') && currentResult) {
+            renderResult(currentResult); // 刷新结果
         }
     }
 
@@ -523,7 +663,90 @@
         return currentConfig;
     }
 
-    // 测评渲染
+    // ---------- 统计功能 (localStorage) ----------
+    const STORAGE_KEY = "blp_submissions";
+
+    function loadSubmissions() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return [];
+    }
+
+    function saveSubmission(record) {
+        const submissions = loadSubmissions();
+        submissions.unshift(record); // 最新在前
+        if (submissions.length > 200) submissions.pop();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+        renderStatsList();
+    }
+
+    function clearAllSubmissions() {
+        if (confirm("⚠️ 确认清空所有提交记录吗？此操作不可恢复。")) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderStatsList();
+            showToast("所有记录已清空");
+        }
+    }
+
+    function renderStatsList() {
+        const submissions = loadSubmissions();
+        const container = document.getElementById('statsList');
+        if (!container) return;
+        if (submissions.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>';
+            return;
+        }
+        let html = '';
+        submissions.forEach(rec => {
+            html += `
+                <div class="stats-item">
+                    <div class="info">
+                        <strong>👤 ${escapeHtml(rec.name || '')}</strong><br>
+                        📱 ${escapeHtml(rec.phone || '')}<br>
+                        🧩 ${rec.level || ''} · ${rec.totalScore}分<br>
+                        ${rec.title || ''}
+                    </div>
+                    <div class="time">${rec.time || ''}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function copyAllRecords() {
+        const submissions = loadSubmissions();
+        if (submissions.length === 0) {
+            showToast("暂无记录可复制");
+            return;
+        }
+        let text = "📋 保险合伙人测评线索统计\n\n";
+        submissions.forEach((rec, idx) => {
+            text += `${idx+1}. 姓名：${rec.name || '未填写'}\n`;
+            text += `   手机号：${rec.phone || '未填写'}\n`;
+            text += `   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n`;
+            text += `   提交时间：${rec.time}\n`;
+            text += `   --------------------\n`;
+        });
+        copyToClipboard(text, "已复制全部线索到剪贴板");
+    }
+
+    // 记录提交（姓名+手机号+测评结果）
+    function recordSubmission(name, phone, totalScore, level, title) {
+        if (!name || !phone) return;
+        const record = {
+            name: name.trim(),
+            phone: phone.trim(),
+            totalScore: totalScore,
+            level: level,
+            title: title,
+            time: new Date().toLocaleString('zh-CN')
+        };
+        saveSubmission(record);
+    }
+
+    // ---------- 测评渲染 ----------
     function renderQuestions() {
         const container = document.getElementById('questionsArea');
         container.innerHTML = '';
@@ -603,31 +826,29 @@
         return { total, level, title, slogan };
     }
 
-    // 上报数据到后端
-    function submitSurveyData(totalScore, level, title, slogan, wechatConfig) {
+    // 上报数据到后端（保留）
+    function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
         const payload = {
             totalScore: totalScore,
             level: level,
             title: title,
             slogan: slogan,
-            wechatConfig: wechatConfig
+            wechatConfig: wechatConfig,
+            name: name,
+            phone: phone
         };
         fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }).catch(err => {
-            // 静默失败，不影响用户体验
             console.warn('数据上报失败（不影响测评）', err);
         });
     }
 
-    function showResult(silentRefresh = false) {
-        if (selectedScores.includes(null)) {
-            showToast('请先完成全部5道潜力测试题，再揭秘结果哦 👀');
-            return false;
-        }
-        const { total, level, title, slogan } = getScoreAndLevel();
+    // 渲染结果（不带自动记录）
+    function renderResult(resultData) {
+        const { total, level, title, slogan } = resultData;
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.classList.remove('hidden');
         
@@ -669,47 +890,108 @@
             <div style="font-size:12px; color:#7f8c8d; margin-top:12px;">*添加请备注“合伙人潜力测试” 优先通过；到访请出示本页面截图</div>
         `;
 
-        // 上报数据（异步，不影响体验）
-        submitSurveyData(total, level, title, slogan, wechatDisplay);
-
-        // 绑定动态按钮事件
+        // 绑定立即加入按钮：弹出模态框收集信息，保存记录并复制微信号
         const contactBtn = document.getElementById('contactRecruitBtn');
         if (contactBtn) {
-            contactBtn.addEventListener('click', () => {
-                const curWechat = getCurrentConfig().wechat;
-                copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
-                showToast(`📌 微信已复制: ${curWechat} ，期待你的加入`);
+            const newBtn = contactBtn.cloneNode(true);
+            contactBtn.parentNode.replaceChild(newBtn, contactBtn);
+            newBtn.addEventListener('click', () => {
+                showContactModal((name, phone) => {
+                    if (name && phone) {
+                        recordSubmission(name, phone, total, level, title);
+                        submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                        showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+                    }
+                    // 无论是否填写，都复制微信号
+                    const curWechat = getCurrentConfig().wechat;
+                    copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
+                });
             });
         }
+
+        // 复制微信号按钮
         const copyWx = document.getElementById('copyWxBtn');
         if (copyWx) {
-            copyWx.addEventListener('click', (e) => {
+            const newCopy = copyWx.cloneNode(true);
+            copyWx.parentNode.replaceChild(newCopy, copyWx);
+            newCopy.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const curWechat = getCurrentConfig().wechat;
                 copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你并肩同行！`);
             });
         }
+
+        // 分享按钮
         const shareBtn = document.getElementById('shareResultBtn');
         if (shareBtn) {
-            shareBtn.addEventListener('click', () => {
+            const newShare = shareBtn.cloneNode(true);
+            shareBtn.parentNode.replaceChild(newShare, shareBtn);
+            newShare.addEventListener('click', () => {
                 const { total, level, title } = getScoreAndLevel();
                 const curWechat = getCurrentConfig().wechat;
                 const shareText = `🔥我刚刚测出保险事业潜力【${level} · ${title}】得分${total}/50！\n原来我的基因里藏着保险企业家潜质💎 快来挑战「保险超级合伙人」游戏，看看你的天赋值，一起抓住风口机遇！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取专属事业规划秘籍。\n👉 立即测试：`;
                 copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性微信号！');
             });
         }
-        if (!silentRefresh) resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        return true;
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+    // 模态框逻辑（收集姓名+手机号）
+    let isShowingModal = false;
+    function showContactModal(callback) {
+        if (isShowingModal) return;
+        const modal = document.getElementById('contactModal');
+        const nameInput = document.getElementById('modalNameInput');
+        const phoneInput = document.getElementById('modalPhoneInput');
+        nameInput.value = '';
+        phoneInput.value = '';
+        modal.style.display = 'flex';
+        isShowingModal = true;
+        
+        const confirmHandler = () => {
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            if (!name) {
+                showToast('请填写姓名');
+                return;
+            }
+            if (!phone) {
+                showToast('请填写手机号');
+                return;
+            }
+            // 简单手机号格式校验
+            const phonePattern = /^1[3-9]\d{9}$/;
+            if (!phonePattern.test(phone)) {
+                showToast('请输入正确的11位手机号');
+                return;
+            }
+            modal.style.display = 'none';
+            isShowingModal = false;
+            if (callback) callback(name, phone);
+            cleanup();
+        };
+        const cancelHandler = () => {
+            modal.style.display = 'none';
+            isShowingModal = false;
+            if (callback) callback('', '');
+            cleanup();
+        };
+        const cleanup = () => {
+            document.getElementById('modalConfirmBtn').removeEventListener('click', confirmHandler);
+            document.getElementById('modalCancelBtn').removeEventListener('click', cancelHandler);
+        };
+        document.getElementById('modalConfirmBtn').addEventListener('click', confirmHandler);
+        document.getElementById('modalCancelBtn').addEventListener('click', cancelHandler);
+    }
+
+    // 主提交逻辑：完成题目后直接显示结果，不强制填写信息
+    function handleSubmit() {
+        if (selectedScores.includes(null)) {
+            showToast('请先完成全部5道潜力测试题，再揭秘结果哦 👀');
+            return;
+        }
+        const result = getScoreAndLevel();
+        currentResult = result;
+        renderResult(result);
     }
 
     function resetGame() {
@@ -717,6 +999,7 @@
         selectedScores = [null, null, null, null, null];
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.classList.add('hidden');
+        currentResult = null;
         showToast('已重置，重新测试看看你的潜力吧 👊');
     }
 
@@ -747,9 +1030,19 @@
         else showToast('手动复制一下哦');
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
     function bindGlobalEvents() {
-        document.getElementById('submitBtn').addEventListener('click', () => showResult());
-        document.getElementById('resetBtn').addEventListener('click', () => resetGame());
+        document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
         
         const toggleBtn = document.getElementById('toggleAdminBtn');
         const adminPanel = document.getElementById('adminPanel');
@@ -757,10 +1050,16 @@
             adminPanel.classList.toggle('hidden');
             if (!adminPanel.classList.contains('hidden')) {
                 updateConfigFieldUI();
+                renderStatsList();
             }
         });
         document.getElementById('saveConfigBtn').addEventListener('click', saveFromForm);
         document.getElementById('resetConfigBtn').addEventListener('click', resetToDefault);
+        
+        const copyStats = document.getElementById('copyStatsBtn');
+        if (copyStats) copyStats.addEventListener('click', copyAllRecords);
+        const clearStats = document.getElementById('clearStatsBtn');
+        if (clearStats) clearStats.addEventListener('click', clearAllSubmissions);
     }
 
     function init() {
@@ -768,6 +1067,7 @@
         bindGlobalEvents();
         updateConfigFieldUI();
         currentConfig = loadConfig();
+        renderStatsList();
     }
     init();
 </script>

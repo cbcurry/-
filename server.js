@@ -27,6 +27,8 @@ pool.query(`
         title TEXT,
         slogan TEXT,
         wechat_config TEXT,
+        name TEXT,
+        phone TEXT,
         user_agent TEXT,
         ip TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -35,7 +37,7 @@ pool.query(`
 
 // 接收测评数据
 app.post('/api/submit', async (req, res) => {
-    const { totalScore, level, title, slogan, wechatConfig } = req.body;
+    const { totalScore, level, title, slogan, wechatConfig, name, phone } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
 
@@ -45,9 +47,10 @@ app.post('/api/submit', async (req, res) => {
 
     try {
         const result = await pool.query(
-            `INSERT INTO survey_results (total_score, level, title, slogan, wechat_config, user_agent, ip)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [totalScore, level, title, slogan, wechatConfig, userAgent, ip]
+            `INSERT INTO survey_results 
+             (total_score, level, title, slogan, wechat_config, name, phone, user_agent, ip)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+            [totalScore, level, title, slogan, wechatConfig, name || '', phone || '', userAgent, ip]
         );
         res.json({ success: true, id: result.rows[0].id });
     } catch (err) {
@@ -81,22 +84,27 @@ app.get('/admin', async (req, res) => {
                 <div class="container">
                     <h1>📊 保险合伙人潜力测评统计</h1>
                     <p>共 ${rows.length} 条记录</p>
-                    <table>
+                     <table>
                         <thead>
-                            <tr><th>ID</th><th>总分</th><th>等级</th><th>标题</th><th>微信号配置</th><th>IP</th><th>时间</th></tr>
+                             <tr>
+                                 <th>ID</th><th>姓名</th><th>手机号</th><th>总分</th>
+                                 <th>等级</th><th>标题</th><th>微信号配置</th><th>IP</th><th>时间</th>
+                             </tr>
                         </thead>
                         <tbody>
         `;
         rows.forEach(row => {
-            html += `<tr>
-                        <td>${row.id}</td>
-                        <td>${row.total_score}</td>
-                        <td>${escapeHtml(row.level)}</td>
-                        <td>${escapeHtml(row.title)}</td>
-                        <td>${escapeHtml(row.wechat_config)}</td>
-                        <td>${escapeHtml(row.ip)}</td>
-                        <td>${row.created_at}</td>
-                    </tr>`;
+            html += ` <tr>
+                         <td>${row.id}</td>
+                         <td>${escapeHtml(row.name)}</td>
+                         <td>${escapeHtml(row.phone)}</td>
+                         <td>${row.total_score}</td>
+                         <td>${escapeHtml(row.level)}</td>
+                         <td>${escapeHtml(row.title)}</td>
+                         <td>${escapeHtml(row.wechat_config)}</td>
+                         <td>${escapeHtml(row.ip)}</td>
+                         <td>${row.created_at}</td>
+                       </tr>`;
         });
         html += `</tbody></table></div></body></html>`;
         res.send(html);
@@ -114,6 +122,8 @@ function escapeHtml(str) {
         return m;
     });
 }
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
