@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BLP美好生活规划师 · 潜力挑战赛</title>
+    <title>保险超级合伙人 · 潜力挑战赛</title>
     <style>
         * {
             margin: 0;
@@ -394,7 +394,6 @@
             font-weight: 500;
             margin-top: 8px;
         }
-        /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -732,24 +731,7 @@
         copyToClipboard(text, "已复制全部线索到剪贴板");
     }
 
-// 检查手机号是否已存在
-function isPhoneExists(phone) {
-    const submissions = loadSubmissions();
-    return submissions.some(record => record.phone === phone);
-}
-
-// 修改 recordSubmission 调用处（在 showContactModal 回调中）
-if (name && phone) {
-    if (isPhoneExists(phone)) {
-        showToast('该手机号已提交过，不可重复提交');
-        return;
-    }
-    recordSubmission(name, phone, total, level, title);
-    submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
-    showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
-}
-
-    // 记录提交（姓名+手机号+测评结果）
+    // 记录提交到本地（同时发送到后端）
     function recordSubmission(name, phone, totalScore, level, title) {
         if (!name || !phone) return;
         const record = {
@@ -843,8 +825,8 @@ if (name && phone) {
         return { total, level, title, slogan };
     }
 
-    // 上报数据到后端（保留）
-    function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
+    // 上报数据到后端
+    async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
         const payload = {
             totalScore: totalScore,
             level: level,
@@ -854,13 +836,28 @@ if (name && phone) {
             name: name,
             phone: phone
         };
-        fetch('/api/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).catch(err => {
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                if (response.status === 409) {
+                    showToast('该手机号已提交过，不可重复提交');
+                    return false;
+                } else {
+                    console.warn('后端上报失败:', error);
+                }
+            } else {
+                showToast('数据已保存，我们将尽快联系您');
+            }
+            return true;
+        } catch (err) {
             console.warn('数据上报失败（不影响测评）', err);
-        });
+            return false;
+        }
     }
 
     // 渲染结果（不带自动记录）
@@ -912,12 +909,14 @@ if (name && phone) {
         if (contactBtn) {
             const newBtn = contactBtn.cloneNode(true);
             contactBtn.parentNode.replaceChild(newBtn, contactBtn);
-            newBtn.addEventListener('click', () => {
-                showContactModal((name, phone) => {
+            newBtn.addEventListener('click', async () => {
+                showContactModal(async (name, phone) => {
                     if (name && phone) {
-                        recordSubmission(name, phone, total, level, title);
-                        submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
-                        showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                        if (success) {
+                            recordSubmission(name, phone, total, level, title);
+                            showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+                        }
                     }
                     // 无论是否填写，都复制微信号
                     const curWechat = getCurrentConfig().wechat;

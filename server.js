@@ -7,19 +7,23 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 中间件
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// PostgreSQL 连接池（使用环境变量 DATABASE_URL）
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
+// 数据库初始化：建表、添加字段、唯一约束
 (async () => {
     try {
         await pool.query('SELECT NOW()');
         console.log('✅ 数据库连接成功');
+
         // 创建表
         await pool.query(`
             CREATE TABLE IF NOT EXISTS survey_results (
@@ -36,18 +40,24 @@ const pool = new Pool({
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        // 添加唯一约束（防止手机号重复）
-        await pool.query(`
-            ALTER TABLE survey_results 
-            ADD CONSTRAINT IF NOT EXISTS unique_phone UNIQUE (phone)
-        `).catch(err => console.log('唯一约束可能已存在', err.message));
-        console.log('✅ 表结构已就绪');
+        console.log('✅ 表结构检查完成');
+
+        // 添加唯一约束（确保手机号不重复）
+        try {
+            await pool.query(`
+                ALTER TABLE survey_results 
+                ADD CONSTRAINT IF NOT EXISTS unique_phone UNIQUE (phone)
+            `);
+            console.log('✅ 唯一约束已添加');
+        } catch (err) {
+            console.log('唯一约束可能已存在或数据重复，跳过', err.message);
+        }
     } catch (err) {
-        console.error('数据库初始化失败:', err);
+        console.error('数据库初始化失败:', err.message);
     }
 })();
 
-// 提交测评
+// 接收测评数据（含姓名手机号，并校验唯一性）
 app.post('/api/submit', async (req, res) => {
     const { totalScore, level, title, slogan, wechatConfig, name, phone } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -66,7 +76,7 @@ app.post('/api/submit', async (req, res) => {
         );
         res.json({ success: true, id: result.rows[0].id });
     } catch (err) {
-        if (err.code === '23505') {
+        if (err.code === '23505') { // 唯一约束冲突
             return res.status(409).json({ error: '该手机号已提交过，不可重复提交' });
         }
         console.error('插入失败:', err);
@@ -105,7 +115,7 @@ app.delete('/api/records/:id', async (req, res) => {
     }
 });
 
-// 管理后台（带编辑/删除界面）
+// 管理后台（带编辑/删除功能的HTML页面）
 app.get('/admin', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM survey_results ORDER BY created_at DESC LIMIT 200');
@@ -137,12 +147,12 @@ app.get('/admin', async (req, res) => {
                 <div class="container">
                     <h1>📊 保险合伙人潜力测评统计</h1>
                     <p>共 ${rows.length} 条记录</p>
-                    <table>
+                     <table>
                         <thead>
-                            <tr>
+                             <tr>
                                 <th>ID</th><th>姓名</th><th>手机号</th><th>总分</th>
                                 <th>等级</th><th>标题</th><th>微信号配置</th><th>IP</th><th>时间</th><th>操作</th>
-                            </tr>
+                             </tr>
                         </thead>
                         <tbody>
         `;
@@ -256,4 +266,5 @@ function escapeHtml(str) {
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`管理后台: http://localhost:${PORT}/admin`);
 });
