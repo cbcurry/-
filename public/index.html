@@ -2,71 +2,463 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>保险超级合伙人 · 潜力挑战赛</title>
     <style>
-        /* 完整样式（保留您之前使用的所有样式） */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%); font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px 16px 48px; min-height: 100vh; }
-        .game-container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 48px 32px 48px 32px; box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; padding: 24px 20px 32px; }
-        .hero { text-align: center; margin-bottom: 28px; }
-        .badge { display: inline-block; background: #ffd966; color: #b45f06; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 40px; margin-bottom: 12px; }
-        h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #1e3c72, #2b4c8a); background-clip: text; -webkit-background-clip: text; color: transparent; margin-bottom: 6px; }
-        .sub { font-size: 15px; color: #4a627a; background: #eef3fc; display: inline-block; padding: 6px 14px; border-radius: 30px; margin-top: 8px; }
-        .quiz-card { background: #ffffff; border-radius: 32px; padding: 18px 16px 20px; margin-bottom: 20px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03); border: 1px solid rgba(46, 91, 150, 0.1); }
-        .q-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: #1a344d; margin-bottom: 16px; }
-        .q-icon { background: #eef2ff; width: 34px; height: 34px; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
-        .options { display: flex; flex-direction: column; gap: 12px; }
-        .opt-btn { background: #f8fafd; border: 1.5px solid #e2edf7; border-radius: 60px; padding: 14px 18px; font-size: 16px; font-weight: 500; color: #1f3b5c; text-align: left; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; }
-        .opt-btn span:first-child { font-weight: 800; background: #eef2fa; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 40px; color: #1f6392; }
-        .opt-btn.selected { background: #eaf4ff; border-color: #1e88e5; box-shadow: 0 4px 10px rgba(30, 136, 229, 0.15); }
-        .opt-btn.selected span:first-child { background: #1e88e5; color: white; }
-        .action-buttons { display: flex; gap: 14px; margin: 24px 0 12px; }
-        .btn-primary { flex: 2; background: linear-gradient(98deg, #1c6fb0, #2a86d4); border: none; padding: 15px 0; border-radius: 50px; font-weight: 700; font-size: 17px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 8px 18px rgba(30, 100, 180, 0.25); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px 16px 48px;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 48px 32px 48px 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+            position: relative;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .badge {
+            display: inline-block;
+            background: #ffd966;
+            color: #b45f06;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e3c72, #2b4c8a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 6px;
+        }
+        .sub {
+            font-size: 15px;
+            color: #4a627a;
+            background: #eef3fc;
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 18px 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(46, 91, 150, 0.1);
+        }
+        .q-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a344d;
+            margin-bottom: 16px;
+        }
+        .q-icon {
+            background: #eef2ff;
+            width: 34px;
+            height: 34px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .opt-btn {
+            background: #f8fafd;
+            border: 1.5px solid #e2edf7;
+            border-radius: 60px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f3b5c;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .opt-btn span:first-child {
+            font-weight: 800;
+            background: #eef2fa;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 40px;
+            color: #1f6392;
+        }
+        .opt-btn.selected {
+            background: #eaf4ff;
+            border-color: #1e88e5;
+            box-shadow: 0 4px 10px rgba(30, 136, 229, 0.15);
+        }
+        .opt-btn.selected span:first-child {
+            background: #1e88e5;
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            margin: 24px 0 12px;
+        }
+        .btn-primary {
+            flex: 2;
+            background: linear-gradient(98deg, #1c6fb0, #2a86d4);
+            border: none;
+            padding: 15px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(30, 100, 180, 0.25);
+        }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-secondary { flex: 1; background: #ecf3fa; border: none; border-radius: 50px; font-weight: 600; font-size: 15px; color: #2c6eaf; cursor: pointer; }
-        .result-area { margin-top: 28px; background: linear-gradient(115deg, #fef9e6, #fff7e8); border-radius: 32px; padding: 18px 18px 22px; border-left: 6px solid #ffb347; transition: all 0.3s; }
-        .result-badge { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .result-score { background: #ffde9c; border-radius: 60px; padding: 4px 12px; font-size: 14px; font-weight: 700; color: #a45d00; }
-        .result-title { font-size: 22px; font-weight: 800; color: #2c3e4e; margin: 12px 0 8px; }
-        .result-desc { color: #3a546d; line-height: 1.45; font-size: 15px; margin: 12px 0 8px; }
-        .recruit-btn { background: #f3a712; border: none; width: 100%; padding: 14px; border-radius: 50px; font-weight: 800; font-size: 17px; color: #2c2b28; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
-        .share-btn { background: #eef2f5; margin-top: 12px; border: 1px solid #cbdde9; color: #1f5e99; }
-        .gift-box { background: #e6f7e6; border-radius: 24px; padding: 14px; margin: 16px 0 8px; text-align: center; border: 1px solid #b8e0b8; color: #2c6e2c; font-weight: 500; }
-        .gift-box span { font-size: 20px; margin-right: 6px; }
+        .btn-secondary {
+            flex: 1;
+            background: #ecf3fa;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            color: #2c6eaf;
+            cursor: pointer;
+        }
+        .result-area {
+            margin-top: 28px;
+            background: linear-gradient(115deg, #fef9e6, #fff7e8);
+            border-radius: 32px;
+            padding: 18px 18px 22px;
+            border-left: 6px solid #ffb347;
+            transition: all 0.3s;
+        }
+        .result-badge {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .result-score {
+            background: #ffde9c;
+            border-radius: 60px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #a45d00;
+        }
+        .result-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2c3e4e;
+            margin: 12px 0 8px;
+        }
+        .result-desc {
+            color: #3a546d;
+            line-height: 1.45;
+            font-size: 15px;
+            margin: 12px 0 8px;
+        }
+        .recruit-btn {
+            background: #f3a712;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 17px;
+            color: #2c2b28;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .share-btn {
+            background: #eef2f5;
+            margin-top: 12px;
+            border: 1px solid #cbdde9;
+            color: #1f5e99;
+        }
+        .gift-box {
+            background: #e6f7e6;
+            border-radius: 24px;
+            padding: 14px;
+            margin: 16px 0 8px;
+            text-align: center;
+            border: 1px solid #b8e0b8;
+            color: #2c6e2c;
+            font-weight: 500;
+        }
+        .gift-box span {
+            font-size: 20px;
+            margin-right: 6px;
+        }
         .hidden { display: none; }
-        .toast-msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e2f3c; color: white; padding: 10px 20px; border-radius: 40px; font-size: 14px; z-index: 999; white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-        footer { text-align: center; margin-top: 24px; font-size: 11px; color: #8ea0b0; }
-        hr { margin: 20px 0 10px; border: none; height: 1px; background: linear-gradient(to right, transparent, #cbdbe0, transparent); }
-        .admin-toggle { text-align: center; margin-top: 20px; font-size: 12px; }
-        .admin-toggle button { background: none; border: none; color: #5f7f9e; font-size: 12px; text-decoration: underline; cursor: pointer; padding: 6px 12px; opacity: 0.7; }
-        .admin-panel { background: #f4f9fe; border-radius: 28px; padding: 18px; margin-top: 20px; border: 1px solid #cde1f0; transition: all 0.2s; }
-        .admin-panel h4 { font-size: 16px; color: #1e4663; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .admin-field { margin-bottom: 14px; }
-        .admin-field label { display: block; font-size: 13px; font-weight: 600; color: #2c6280; margin-bottom: 6px; }
-        .admin-field input, .admin-field textarea { width: 100%; padding: 10px 14px; border-radius: 30px; border: 1px solid #c2d6e8; background: white; font-size: 14px; font-family: inherit; }
-        .admin-actions { display: flex; gap: 12px; margin-top: 12px; }
-        .admin-actions button { flex: 1; background: #e2edf7; border: none; padding: 8px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-        .admin-actions .save-btn { background: #2a86d4; color: white; }
-        .stats-area { margin-top: 20px; border-top: 1px solid #cde1f0; padding-top: 16px; }
-        .stats-area h5 { font-size: 14px; margin-bottom: 12px; color: #1e4663; }
-        .stats-list { max-height: 300px; overflow-y: auto; background: white; border-radius: 20px; padding: 8px; font-size: 12px; }
-        .stats-item { border-bottom: 1px solid #e2edf7; padding: 10px 8px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-        .stats-item .info { flex: 2; }
-        .stats-item .time { color: #6c86a3; font-size: 11px; }
-        .stats-actions { display: flex; gap: 10px; margin-top: 12px; }
-        .stats-actions button { flex: 1; background: #eef2f5; border: none; border-radius: 30px; padding: 8px; font-size: 12px; cursor: pointer; }
-        .inline-wx { background: #f0f4fa; border-radius: 32px; padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; margin-top: 8px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 85%; max-width: 340px; border-radius: 32px; padding: 24px 20px; text-align: center; box-shadow: 0 20px 30px rgba(0,0,0,0.2); }
-        .modal-content h3 { font-size: 20px; margin-bottom: 12px; color: #1e4663; }
-        .modal-content p { font-size: 14px; color: #4a627a; margin-bottom: 20px; }
-        .modal-input { width: 100%; padding: 12px 16px; border: 1px solid #cbdde9; border-radius: 60px; font-size: 16px; margin-bottom: 16px; box-sizing: border-box; font-family: inherit; }
-        .modal-buttons { display: flex; gap: 12px; margin-top: 8px; }
-        .modal-buttons button { flex: 1; padding: 12px; border-radius: 60px; font-weight: 600; border: none; cursor: pointer; }
-        .modal-buttons .confirm-btn { background: #2a86d4; color: white; }
-        .modal-buttons .cancel-btn { background: #ecf3fa; color: #2c6eaf; }
-        @media (max-width: 480px) { .game-container { padding: 20px 16px 28px; } .opt-btn { padding: 12px 14px; } .q-title { font-size: 17px; } }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e2f3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            z-index: 999;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #8ea0b0;
+        }
+        hr {
+            margin: 20px 0 10px;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #cbdbe0, transparent);
+        }
+        /* 合伙人专属设置面板（仅当无pid时显示） */
+        .admin-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        .admin-toggle button {
+            background: none;
+            border: none;
+            color: #5f7f9e;
+            font-size: 12px;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 6px 12px;
+            opacity: 0.7;
+        }
+        .admin-panel {
+            background: #f4f9fe;
+            border-radius: 28px;
+            padding: 18px;
+            margin-top: 20px;
+            border: 1px solid #cde1f0;
+            transition: all 0.2s;
+        }
+        .admin-panel h4 {
+            font-size: 16px;
+            color: #1e4663;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-field {
+            margin-bottom: 14px;
+        }
+        .admin-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c6280;
+            margin-bottom: 6px;
+        }
+        .admin-field input, .admin-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 30px;
+            border: 1px solid #c2d6e8;
+            background: white;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .admin-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .admin-actions button {
+            flex: 1;
+            background: #e2edf7;
+            border: none;
+            padding: 8px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .admin-actions .save-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .stats-area {
+            margin-top: 20px;
+            border-top: 1px solid #cde1f0;
+            padding-top: 16px;
+        }
+        .stats-area h5 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .stats-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 20px;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .stats-item {
+            border-bottom: 1px solid #e2edf7;
+            padding: 10px 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .stats-item .info {
+            flex: 2;
+        }
+        .stats-item .time {
+            color: #6c86a3;
+            font-size: 11px;
+        }
+        .stats-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .stats-actions button {
+            flex: 1;
+            background: #eef2f5;
+            border: none;
+            border-radius: 30px;
+            padding: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .inline-wx {
+            background: #f0f4fa;
+            border-radius: 32px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            width: 85%;
+            max-width: 340px;
+            border-radius: 32px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .modal-content p {
+            font-size: 14px;
+            color: #4a627a;
+            margin-bottom: 20px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbdde9;
+            border-radius: 60px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-buttons .confirm-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .modal-buttons .cancel-btn {
+            background: #ecf3fa;
+            color: #2c6eaf;
+        }
+        @media (max-width: 480px) {
+            .game-container { padding: 20px 16px 28px; }
+            .opt-btn { padding: 12px 14px; }
+            .q-title { font-size: 17px; }
+        }
     </style>
 </head>
 <body>
@@ -88,7 +480,7 @@
         行业顶尖导师团队，助你成就高光人生
     </div>
     
-    <!-- 合伙人专属后台（此面板仅在无 pid 参数时显示，用于演示，实际生产可完全隐藏） -->
+    <!-- 合伙人专属设置（仅在无pid时显示，用于演示） -->
     <div class="admin-toggle" id="adminToggle">
         <button id="toggleAdminBtn">⚙️ 合伙人专属设置 & 线索统计</button>
     </div>
@@ -115,7 +507,6 @@
             <button id="resetConfigBtn">↺ 恢复默认</button>
         </div>
         
-        <!-- 统计区域：展示所有提交记录（仅本地演示，实际合伙人后台应使用 partner.html） -->
         <div class="stats-area">
             <h5>📋 提交记录统计（姓名 + 手机号）</h5>
             <div id="statsList" class="stats-list">
@@ -151,7 +542,7 @@
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    // 获取 URL 参数 pid（合伙人标识）
+    // ---------- 获取 URL 参数 pid（合伙人标识） ----------
     const urlParams = new URLSearchParams(window.location.search);
     const partnerToken = urlParams.get('pid');
 
@@ -248,7 +639,10 @@
         saveConfigToLocal(currentConfig);
         updateConfigFieldUI();
         showToast("✅ 个性化配置已保存！下次测评结果页将展示你的专属信息");
-        if (currentResult) renderResult(currentResult);
+        const resultContainer = document.getElementById('resultContainer');
+        if (resultContainer && !resultContainer.classList.contains('hidden') && currentResult) {
+            renderResult(currentResult);
+        }
     }
 
     function resetToDefault() {
@@ -277,7 +671,7 @@
         return currentConfig;
     }
 
-    // 本地统计功能 (localStorage) - 仅用于演示，实际数据在数据库
+    // 本地统计功能 (localStorage) - 仅用于演示，实际数据在服务器
     const STORAGE_KEY = "blp_submissions";
 
     function loadSubmissions() {
@@ -359,7 +753,7 @@
         saveSubmission(record);
     }
 
-    // 测评渲染
+    // ---------- 测评渲染 ----------
     function renderQuestions() {
         const container = document.getElementById('questionsArea');
         if (!container) return;
@@ -420,6 +814,7 @@
         return { total, level, title, slogan };
     }
 
+    // 上报数据到后端
     async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
         const payload = {
             totalScore: totalScore,
@@ -429,7 +824,7 @@
             wechatConfig: wechatConfig,
             name: name,
             phone: phone,
-            partnerToken: partnerToken || null   // 传递合伙人标识
+            partnerToken: partnerToken || null
         };
         try {
             const response = await fetch('/api/submit', {
