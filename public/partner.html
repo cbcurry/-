@@ -18,65 +18,137 @@
         .delete-btn { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
         .share-link { background: #f0f4fa; padding: 12px; border-radius: 16px; margin-top: 16px; word-break: break-all; }
         .loading { text-align: center; padding: 20px; color: #666; }
+        .qrcode { text-align: center; margin-top: 16px; }
+        .qrcode canvas { max-width: 200px; height: auto; margin: 0 auto; display: block; }
+        .register-form { max-width: 400px; margin: 0 auto; }
+        .register-form h2 { text-align: center; }
+        .error { color: red; margin-top: 8px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
 </head>
 <body>
 <div class="container" id="app">
-    <div class="card">
-        <h2>🔧 合伙人配置</h2>
-        <label>微信号</label>
-        <input type="text" id="wechat" placeholder="微信号">
-        <label>礼品地址</label>
-        <textarea id="address" rows="2" placeholder="到访地址"></textarea>
-        <label>活动截止日期</label>
-        <input type="text" id="deadline" placeholder="例如 4月30日">
-        <label>额外礼品提示</label>
-        <input type="text" id="giftExtra" placeholder="展业赋能工具包">
-        <button id="saveConfigBtn">保存配置</button>
-        <button id="refreshBtn">刷新</button>
-        <div class="share-link" id="shareLink"></div>
+    <div id="registerView" style="display: none;">
+        <div class="card register-form">
+            <h2>🔑 合伙人登录/注册</h2>
+            <label>请输入您的微信号</label>
+            <input type="text" id="wechatInput" placeholder="例如: cbahluck888">
+            <button id="registerBtn">登录 / 注册</button>
+            <div id="registerError" class="error"></div>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>📊 客户提交记录</h2>
-        <div id="recordsList" class="loading">加载中...</div>
+    <div id="mainView" style="display: none;">
+        <div class="card">
+            <h2>🔧 合伙人配置</h2>
+            <label>微信号</label>
+            <input type="text" id="wechat" placeholder="微信号">
+            <label>礼品地址</label>
+            <textarea id="address" rows="2" placeholder="到访地址"></textarea>
+            <label>活动截止日期</label>
+            <input type="text" id="deadline" placeholder="例如 4月30日">
+            <label>额外礼品提示</label>
+            <input type="text" id="giftExtra" placeholder="展业赋能工具包">
+            <button id="saveConfigBtn">保存配置</button>
+            <button id="refreshBtn">刷新</button>
+            <div class="share-link" id="shareLink"></div>
+            <div class="qrcode" id="qrcode"></div>
+        </div>
+
+        <div class="card">
+            <h2>📊 客户提交记录</h2>
+            <div id="recordsList" class="loading">加载中...</div>
+        </div>
     </div>
 </div>
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (!token) {
-        alert('请在链接后添加 ?token=您的专属令牌');
-        document.body.innerHTML = '<div style="padding:20px">无效的访问方式，请联系管理员获取专属链接。</div>';
-        throw new Error('no token');
+    let token = urlParams.get('token');
+
+    // 显示注册视图或主视图
+    function showRegisterView() {
+        document.getElementById('registerView').style.display = 'block';
+        document.getElementById('mainView').style.display = 'none';
     }
 
-    const apiBase = '';
-    let partnerConfig = {};
+    function showMainView() {
+        document.getElementById('registerView').style.display = 'none';
+        document.getElementById('mainView').style.display = 'block';
+    }
 
-    async function loadPartner() {
+    if (!token) {
+        showRegisterView();
+    } else {
+        showMainView();
+        loadPartnerData();
+        loadRecords();
+    }
+
+    // 注册/登录
+    document.getElementById('registerBtn')?.addEventListener('click', async () => {
+        const wechat = document.getElementById('wechatInput').value.trim();
+        if (!wechat) {
+            document.getElementById('registerError').innerText = '请填写微信号';
+            return;
+        }
+        try {
+            const res = await fetch('/api/partner/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wechat })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // 重定向到带 token 的页面
+                const newUrl = `${window.location.origin}${window.location.pathname}?token=${data.token}`;
+                window.location.href = newUrl;
+            } else {
+                document.getElementById('registerError').innerText = data.error || '注册失败';
+            }
+        } catch (err) {
+            document.getElementById('registerError').innerText = '网络错误';
+        }
+    });
+
+    // 加载合伙人信息
+    async function loadPartnerData() {
         try {
             const res = await fetch(`/api/partner/${token}`);
             if (!res.ok) throw new Error('合伙人不存在');
             const data = await res.json();
-            partnerConfig = data;
             document.getElementById('wechat').value = data.wechat || '';
             document.getElementById('address').value = data.address || '';
             document.getElementById('deadline').value = data.deadline || '';
             document.getElementById('giftExtra').value = data.giftExtra || '';
-            // 生成分享链接
+
+            // 生成分享链接和二维码
             const shareUrl = `${window.location.origin}/?pid=${token}`;
-            document.getElementById('shareLink').innerHTML = `<strong>分享链接（客户点击此链接填写问卷）:</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br><button id="copyLinkBtn">复制链接</button>`;
+            const shareHtml = `<strong>分享链接（客户点击此链接填写问卷）:</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br>
+                                <button id="copyLinkBtn">复制链接</button>`;
+            document.getElementById('shareLink').innerHTML = shareHtml;
             document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
                 navigator.clipboard.writeText(shareUrl);
                 alert('链接已复制');
+            });
+
+            // 生成二维码
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = ''; // 清空
+            new QRCode(qrcodeDiv, {
+                text: shareUrl,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
             });
         } catch (err) {
             alert('加载合伙人信息失败：' + err.message);
         }
     }
 
+    // 保存配置
     async function saveConfig() {
         const wechat = document.getElementById('wechat').value;
         const address = document.getElementById('address').value;
@@ -95,6 +167,7 @@
         }
     }
 
+    // 加载客户记录
     async function loadRecords() {
         try {
             const res = await fetch(`/api/partner/${token}/records`);
@@ -104,18 +177,25 @@
                 container.innerHTML = '<p>暂无客户提交记录</p>';
                 return;
             }
-            let html = ` <table> <thead> <tr> <th>姓名</th> <th>手机号</th> <th>总分</th> <th>等级</th> <th>时间</th> <th>操作</th> </tr> </thead> <tbody> `;
+            let html = ` 表
+                <thead>
+                    <tr><th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>时间</th><th>操作</th> </tr>
+                </thead>
+                <tbody>
+            `;
             records.forEach(rec => {
-                html += `<tr>
-                    <td>${escapeHtml(rec.name)}</td>
-                    <td>${escapeHtml(rec.phone)}</td>
-                    <td>${rec.total_score}</td>
-                    <td>${escapeHtml(rec.level)}</td>
-                    <td>${rec.created_at}</td>
-                    <td><button class="delete-btn" data-id="${rec.id}">删除</button></td>
-                </tr>`;
+                html += `
+                    <tr>
+                        <td>${escapeHtml(rec.name)}</td>
+                        <td>${escapeHtml(rec.phone)}</td>
+                        <td>${rec.total_score}</td>
+                        <td>${escapeHtml(rec.level)}</td>
+                        <td>${rec.created_at}</td>
+                        <td><button class="delete-btn" data-id="${rec.id}">删除</button></td>
+                    </tr>
+                `;
             });
-            html += `</tbody></table>`;
+            html += `</tbody> 表`;
             container.innerHTML = html;
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
@@ -141,11 +221,8 @@
         });
     }
 
-    document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-    document.getElementById('refreshBtn').addEventListener('click', () => { loadPartner(); loadRecords(); });
-
-    loadPartner();
-    loadRecords();
+    document.getElementById('saveConfigBtn')?.addEventListener('click', saveConfig);
+    document.getElementById('refreshBtn')?.addEventListener('click', () => { loadPartnerData(); loadRecords(); });
 </script>
 </body>
 </html>
