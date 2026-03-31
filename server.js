@@ -1,180 +1,134 @@
 const express = require('express');
 const path = require('path');
-const { Pool } = require('pg');
-const cors = require('cors');
+const fs = require('fs');
 const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中间件
-app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// PostgreSQL 连接池
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
+// ================== 数据文件路径 ==================
+const PARTNERS_FILE = path.join(__dirname, 'partners.json');
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-// ================== 数据库初始化 ==================
-(async () => {
-    try {
-        await pool.query('SELECT NOW()');
-        console.log('✅ 数据库连接成功');
+// 初始化数据文件
+if (!fs.existsSync(PARTNERS_FILE)) fs.writeFileSync(PARTNERS_FILE, '[]', 'utf8');
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf8');
 
-        // 创建 partners 表
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS partners (
-                id SERIAL PRIMARY KEY,
-                token VARCHAR(64) UNIQUE NOT NULL,
-                wechat VARCHAR(100),
-                address TEXT,
-                deadline VARCHAR(50),
-                gift_extra TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+// ================== 辅助函数 ==================
+function readPartners() {
+    return JSON.parse(fs.readFileSync(PARTNERS_FILE, 'utf8'));
+}
+function writePartners(partners) {
+    fs.writeFileSync(PARTNERS_FILE, JSON.stringify(partners, null, 2), 'utf8');
+}
+function readData() {
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+}
+function writeData(data) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
 
-        // 为 survey_results 添加 partner_id 字段
-        await pool.query(`
-            ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS partner_id INTEGER REFERENCES partners(id)
-        `);
+// ================== 合伙人 API ==================
 
-        // 添加 name 和 phone 字段（如果不存在）
-        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS name TEXT`);
-        await pool.query(`ALTER TABLE survey_results ADD COLUMN IF NOT EXISTS phone TEXT`);
-
-        // 移除旧的唯一约束（如果存在），添加联合唯一约束（partner_id + phone）
-        await pool.query(`ALTER TABLE survey_results DROP CONSTRAINT IF EXISTS unique_phone`);
-        await pool.query(`
-            ALTER TABLE survey_results ADD CONSTRAINT unique_partner_phone UNIQUE (partner_id, phone)
-        `).catch(err => console.log('唯一约束可能已存在', err.message));
-
-        console.log('✅ 数据库初始化完成');
-    } catch (err) {
-        console.error('数据库初始化失败:', err.message);
-    }
-})();
-
-// ================== 合伙人相关 API ==================
-
-// 合伙人注册
-app.post('/api/partner/register', async (req, res) => {
+// 1. 注册
+app.post('/api/partner/register', (req, res) => {
     const { wechat, address, deadline, giftExtra } = req.body;
-    if (!wechat) {
-        return res.status(400).json({ error: '请填写微信号' });
+    if (!wechat) return res.status(400).json({ error: '请填写微信号' });
+
+    const partners = readPartners();
+    // 检查微信号是否已存在（可选，若允许重复注册则注释掉）
+    const existing = partners.find(p => p.wechat === wechat);
+    if (existing) {
+        return res.json({ success: true, token: existing.token });
     }
 
-    // 检查微信号是否已注册（可选，如需禁止重复注册则取消注释）
-    // const existing = await pool.query('SELECT token FROM partners WHERE wechat = $1', [wechat]);
-    // if (existing.rows.length > 0) {
-    //     return res.json({ success: true, token: existing.rows[0].token });
-    // }
-
-    // 生成唯一 token（8位十六进制）
+    // 生成唯一 token
     let token;
-    let tokenExists = true;
-    while (tokenExists) {
+    let exists = true;
+    while (exists) {
         token = crypto.randomBytes(8).toString('hex');
-        const check = await pool.query('SELECT id FROM partners WHERE token = $1', [token]);
-        if (check.rows.length === 0) tokenExists = false;
+        exists = partners.some(p => p.token === token);
     }
 
-    try {
-        await pool.query(
-            `INSERT INTO partners (token, wechat, address, deadline, gift_extra)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [token, wechat, address || '', deadline || '', giftExtra || '']
-        );
-        res.json({ success: true, token });
-    } catch (err) {
-        console.error('注册失败:', err);
-        res.status(500).json({ error: '注册失败，请稍后重试' });
-    }
+    const newPartner = {
+        id: Date.now(),
+        token,
+        wechat,
+        address: address || '',
+        deadline: deadline || '',
+        giftExtra: giftExtra || '',
+        createdAt: new Date().toISOString()
+    };
+    partners.push(newPartner);
+    writePartners(partners);
+    res.json({ success: true, token });
 });
 
-// 获取合伙人信息
-app.get('/api/partner/:token', async (req, res) => {
+// 2. 获取合伙人信息
+app.get('/api/partner/:token', (req, res) => {
     const { token } = req.params;
-    try {
-        const result = await pool.query('SELECT * FROM partners WHERE token = $1', [token]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: '合伙人不存在' });
-        }
-        const partner = result.rows[0];
-        res.json({
-            id: partner.id,
-            token: partner.token,
-            wechat: partner.wechat || '',
-            address: partner.address || '',
-            deadline: partner.deadline || '',
-            giftExtra: partner.gift_extra || ''
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '查询失败' });
-    }
+    const partners = readPartners();
+    const partner = partners.find(p => p.token === token);
+    if (!partner) return res.status(404).json({ error: '合伙人不存在' });
+    res.json({
+        id: partner.id,
+        token: partner.token,
+        wechat: partner.wechat,
+        address: partner.address,
+        deadline: partner.deadline,
+        giftExtra: partner.giftExtra
+    });
 });
 
-// 更新合伙人配置
-app.put('/api/partner/:token', async (req, res) => {
+// 3. 更新合伙人配置
+app.put('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const { wechat, address, deadline, giftExtra } = req.body;
-    try {
-        await pool.query(
-            `UPDATE partners SET wechat = $1, address = $2, deadline = $3, gift_extra = $4 WHERE token = $5`,
-            [wechat, address, deadline, giftExtra, token]
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '更新失败' });
-    }
+    const partners = readPartners();
+    const index = partners.findIndex(p => p.token === token);
+    if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
+    partners[index] = {
+        ...partners[index],
+        wechat: wechat || '',
+        address: address || '',
+        deadline: deadline || '',
+        giftExtra: giftExtra || ''
+    };
+    writePartners(partners);
+    res.json({ success: true });
 });
 
-// 获取合伙人的客户记录
-app.get('/api/partner/:token/records', async (req, res) => {
+// 4. 获取合伙人的客户记录
+app.get('/api/partner/:token/records', (req, res) => {
     const { token } = req.params;
-    try {
-        const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [token]);
-        if (partner.rows.length === 0) return res.status(404).json({ error: '合伙人不存在' });
-        const partnerId = partner.rows[0].id;
-        const records = await pool.query(
-            `SELECT * FROM survey_results WHERE partner_id = $1 ORDER BY created_at DESC LIMIT 500`,
-            [partnerId]
-        );
-        res.json(records.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '查询失败' });
-    }
+    const partners = readPartners();
+    const partner = partners.find(p => p.token === token);
+    if (!partner) return res.status(404).json({ error: '合伙人不存在' });
+    const allData = readData();
+    const records = allData.filter(r => r.partnerId === partner.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(records);
 });
 
-// 删除客户记录（仅限该合伙人的）
-app.delete('/api/partner/:token/records/:id', async (req, res) => {
+// 5. 删除客户记录
+app.delete('/api/partner/:token/records/:id', (req, res) => {
     const { token, id } = req.params;
-    try {
-        const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [token]);
-        if (partner.rows.length === 0) return res.status(404).json({ error: '合伙人不存在' });
-        const partnerId = partner.rows[0].id;
-        const result = await pool.query(
-            'DELETE FROM survey_results WHERE id = $1 AND partner_id = $2 RETURNING id',
-            [id, partnerId]
-        );
-        if (result.rowCount === 0) {
-            return res.status(404).json({ error: '记录不存在或无权删除' });
-        }
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: '删除失败' });
-    }
+    const partners = readPartners();
+    const partner = partners.find(p => p.token === token);
+    if (!partner) return res.status(404).json({ error: '合伙人不存在' });
+    let allData = readData();
+    const recordIndex = allData.findIndex(r => r.id == id && r.partnerId === partner.id);
+    if (recordIndex === -1) return res.status(404).json({ error: '记录不存在或无权删除' });
+    allData.splice(recordIndex, 1);
+    writeData(allData);
+    res.json({ success: true });
 });
 
 // ================== 客户提交测评 ==================
-app.post('/api/submit', async (req, res) => {
+app.post('/api/submit', (req, res) => {
     const { totalScore, level, title, slogan, wechatConfig, name, phone, partnerToken } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
@@ -183,37 +137,107 @@ app.post('/api/submit', async (req, res) => {
         return res.status(400).json({ error: '缺少必填字段 totalScore' });
     }
 
-    try {
-        let partnerId = null;
-        if (partnerToken) {
-            const partner = await pool.query('SELECT id FROM partners WHERE token = $1', [partnerToken]);
-            if (partner.rows.length > 0) partnerId = partner.rows[0].id;
-        }
+    // 查找合伙人
+    let partnerId = null;
+    if (partnerToken) {
+        const partners = readPartners();
+        const partner = partners.find(p => p.token === partnerToken);
+        if (partner) partnerId = partner.id;
+    }
 
-        const result = await pool.query(
-            `INSERT INTO survey_results 
-             (total_score, level, title, slogan, wechat_config, name, phone, user_agent, ip, partner_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-            [totalScore, level, title, slogan, wechatConfig, name || '', phone || '', userAgent, ip, partnerId]
-        );
-        res.json({ success: true, id: result.rows[0].id });
-    } catch (err) {
-        if (err.code === '23505') {
+    const allData = readData();
+    // 手机号重复检查（同一合伙人下）
+    if (partnerId && phone) {
+        const exists = allData.some(r => r.partnerId === partnerId && r.phone === phone);
+        if (exists) {
             return res.status(409).json({ error: '该手机号已提交过，不可重复提交' });
         }
-        console.error('插入失败:', err);
-        res.status(500).json({ error: '数据存储失败', detail: err.message });
     }
+
+    const newRecord = {
+        id: Date.now(),
+        totalScore,
+        level: level || '',
+        title: title || '',
+        slogan: slogan || '',
+        wechatConfig: wechatConfig || '',
+        name: name || '',
+        phone: phone || '',
+        ip: ip || '',
+        userAgent: userAgent || '',
+        partnerId,
+        createdAt: new Date().toISOString()
+    };
+    allData.unshift(newRecord);
+    writeData(allData);
+    res.json({ success: true, id: newRecord.id });
 });
 
-// ================== 全局后台（可选） ==================
-app.get('/admin', async (req, res) => {
-    res.send('全局后台已移至合伙人后台，请使用 /partner.html?token=xxx 访问');
+// ================== 管理员功能 ==================
+const ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';
+
+// 获取所有合伙人及客户统计
+app.get('/api/admin/stats', (req, res) => {
+    const key = req.query.key;
+    if (key !== ADMIN_KEY) {
+        return res.status(403).json({ error: '无权访问' });
+    }
+    const partners = readPartners();
+    const allData = readData();
+
+    const partnerStats = partners.map(p => {
+        const customers = allData.filter(d => d.partnerId === p.id);
+        return {
+            ...p,
+            customerCount: customers.length,
+            customers: customers.map(c => ({
+                id: c.id,
+                name: c.name,
+                phone: c.phone,
+                totalScore: c.totalScore,
+                level: c.level,
+                createdAt: c.createdAt
+            }))
+        };
+    });
+    res.json(partnerStats);
+});
+
+// 删除合伙人（谨慎操作，关联客户数据将失去归属）
+app.delete('/api/admin/partner/:id', (req, res) => {
+    const key = req.query.key;
+    if (key !== ADMIN_KEY) {
+        return res.status(403).json({ error: '无权访问' });
+    }
+    const partnerId = parseInt(req.params.id);
+    let partners = readPartners();
+    const index = partners.findIndex(p => p.id === partnerId);
+    if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
+    partners.splice(index, 1);
+    writePartners(partners);
+
+    // 将关联客户数据的 partnerId 置为 null（保留客户记录但无归属）
+    let allData = readData();
+    allData = allData.map(d => {
+        if (d.partnerId === partnerId) {
+            return { ...d, partnerId: null };
+        }
+        return d;
+    });
+    writeData(allData);
+
+    res.json({ success: true });
+});
+
+// ================== 全局后台提示 ==================
+app.get('/admin', (req, res) => {
+    res.send('全局后台已移至 /admin.html?key=xxx 访问');
 });
 
 // ================== 启动服务 ==================
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`注册页面: http://localhost:${PORT}/register.html`);
-    console.log(`合伙人后台示例: http://localhost:${PORT}/partner.html?token=your_token`);
+    console.log(`合伙人后台: http://localhost:${PORT}/partner.html?token=您的token`);
+    console.log(`管理员后台: http://localhost:${PORT}/admin.html?key=${ADMIN_KEY}`);
 });
