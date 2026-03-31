@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合伙人注册 - 保险超级合伙人</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { font-size: 28px; color: #1e3c72; margin-bottom: 12px; }
+        .sub { color: #4a627a; margin-bottom: 28px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbdde9;
+            border-radius: 60px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(98deg, #1c6fb0, #2a86d4);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f0f9ff;
+            border-radius: 24px;
+            display: none;
+        }
+        .qrcode {
+            text-align: center;
+            margin: 16px 0;
+        }
+        .qrcode canvas {
+            max-width: 200px;
+            height: auto;
+        }
+        .link {
+            word-break: break-all;
+            font-size: 12px;
+            color: #2a86d4;
+            margin: 8px 0;
+        }
+        .error {
+            color: #d9534f;
+            margin-top: 12px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🤝 保险合伙人</h1>
+        <div class="sub">输入微信号，生成您的专属二维码，分享给客户</div>
+        <input type="text" id="wechatInput" placeholder="请输入您的微信号" autocomplete="off">
+        <button id="registerBtn">生成专属二维码</button>
+        <div id="result" class="result"></div>
+    </div>
+    <script>
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const wechat = document.getElementById('wechatInput').value.trim();
+            if (!wechat) {
+                alert('请填写微信号');
+                return;
+            }
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+            try {
+                const response = await fetch('/api/partner/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wechat })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                const { token } = data;
+                // 构建链接
+                const baseUrl = window.location.origin;
+                const adminLink = `${baseUrl}/partner.html?token=${token}`;
+                const customerLink = `${baseUrl}/?pid=${token}`;
+                // 显示结果
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `
+                    <div style="font-weight:bold; margin-bottom:12px;">✅ 注册成功！</div>
+                    <div class="qrcode" id="qrcode"></div>
+                    <div class="link">客户问卷链接：<a href="${customerLink}" target="_blank">${customerLink}</a></div>
+                    <div style="margin-top:16px;">
+                        <a href="${adminLink}" target="_blank" style="display:inline-block; background:#2a86d4; color:white; padding:10px 20px; border-radius:40px; text-decoration:none;">进入我的后台 →</a>
+                    </div>
+                    <div style="margin-top:12px; font-size:12px; color:#666;">保存以上链接或截图二维码，分享给客户</div>
+                `;
+                resultDiv.style.display = 'block';
+                // 生成二维码
+                new QRCode(document.getElementById("qrcode"), {
+                    text: customerLink,
+                    width: 200,
+                    height: 200
+                });
+                // 自动滚动到结果
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                alert('注册失败：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '生成专属二维码';
+            }
+        });
+    </script>
+</body>
+</html>
