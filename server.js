@@ -32,32 +32,39 @@ function writeData(data) {
 
 // ================== 合伙人 API ==================
 
-// 注册（姓名 + 工号，工号9位数字且唯一）
+// 1. 注册（姓名 + 工号 + 密码）
 app.post('/api/partner/register', (req, res) => {
-    const { realName, employeeId } = req.body;
-    if (!realName || !employeeId) {
-        return res.status(400).json({ error: '请填写姓名和工号' });
+    const { realName, employeeId, password } = req.body;
+    if (!realName || !employeeId || !password) {
+        return res.status(400).json({ error: '请填写姓名、工号和密码' });
     }
     if (!/^\d{9}$/.test(employeeId)) {
         return res.status(400).json({ error: '工号必须为9位数字' });
     }
+    if (password.length < 6) {
+        return res.status(400).json({ error: '密码长度至少6位' });
+    }
 
     const partners = readPartners();
-    // 工号全局唯一
     if (partners.some(p => p.employeeId === employeeId)) {
         return res.status(409).json({ error: '该工号已注册，请勿重复注册' });
     }
 
+    // 生成唯一 token
     let token;
     do {
         token = crypto.randomBytes(8).toString('hex');
     } while (partners.some(p => p.token === token));
+
+    // 密码简单哈希（生产环境建议使用 bcrypt）
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
     const newPartner = {
         id: Date.now(),
         token,
         realName,
         employeeId,
+        password: hashedPassword,
         wechat: '',
         address: '',
         deadline: '',
@@ -69,7 +76,25 @@ app.post('/api/partner/register', (req, res) => {
     res.json({ success: true, token });
 });
 
-// 获取合伙人信息
+// 2. 登录（工号 + 密码）
+app.post('/api/partner/login', (req, res) => {
+    const { employeeId, password } = req.body;
+    if (!employeeId || !password) {
+        return res.status(400).json({ error: '请填写工号和密码' });
+    }
+    const partners = readPartners();
+    const partner = partners.find(p => p.employeeId === employeeId);
+    if (!partner) {
+        return res.status(401).json({ error: '工号或密码错误' });
+    }
+    const hashed = crypto.createHash('sha256').update(password).digest('hex');
+    if (partner.password !== hashed) {
+        return res.status(401).json({ error: '工号或密码错误' });
+    }
+    res.json({ success: true, token: partner.token });
+});
+
+// 3. 获取合伙人信息（需 token 验证，但不验证密码，仅校验 token 存在）
 app.get('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -87,14 +112,15 @@ app.get('/api/partner/:token', (req, res) => {
     });
 });
 
-// 更新合伙人配置
+// 4. 更新合伙人配置（需 token 验证）
 app.put('/api/partner/:token', (req, res) => {
     const { token } = req.params;
-    const { realName, employeeId, wechat, address, deadline, giftExtra } = req.body;
+    const { realName, employeeId, wechat, address, deadline, giftExtra, password } = req.body;
     const partners = readPartners();
     const index = partners.findIndex(p => p.token === token);
     if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
-    // 如果修改工号，需验证唯一性
+
+    // 如果要修改工号，需验证唯一性
     if (employeeId && employeeId !== partners[index].employeeId) {
         if (!/^\d{9}$/.test(employeeId)) {
             return res.status(400).json({ error: '工号必须为9位数字' });
@@ -103,20 +129,24 @@ app.put('/api/partner/:token', (req, res) => {
             return res.status(409).json({ error: '工号已被其他合伙人使用' });
         }
     }
-    partners[index] = {
-        ...partners[index],
-        realName: realName !== undefined ? realName : partners[index].realName,
-        employeeId: employeeId !== undefined ? employeeId : partners[index].employeeId,
-        wechat: wechat !== undefined ? wechat : partners[index].wechat,
-        address: address !== undefined ? address : partners[index].address,
-        deadline: deadline !== undefined ? deadline : partners[index].deadline,
-        giftExtra: giftExtra !== undefined ? giftExtra : partners[index].giftExtra
-    };
+
+    const updated = { ...partners[index] };
+    if (realName !== undefined) updated.realName = realName;
+    if (employeeId !== undefined) updated.employeeId = employeeId;
+    if (wechat !== undefined) updated.wechat = wechat;
+    if (address !== undefined) updated.address = address;
+    if (deadline !== undefined) updated.deadline = deadline;
+    if (giftExtra !== undefined) updated.giftExtra = giftExtra;
+    if (password) {
+        updated.password = crypto.createHash('sha256').update(password).digest('hex');
+    }
+
+    partners[index] = updated;
     writePartners(partners);
     res.json({ success: true });
 });
 
-// 获取合伙人的客户记录
+// 5. 获取合伙人的客户记录
 app.get('/api/partner/:token/records', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -127,7 +157,7 @@ app.get('/api/partner/:token/records', (req, res) => {
     res.json(records);
 });
 
-// 删除客户记录
+// 6. 删除客户记录
 app.delete('/api/partner/:token/records/:id', (req, res) => {
     const { token, id } = req.params;
     const partners = readPartners();
@@ -159,7 +189,6 @@ app.post('/api/submit', (req, res) => {
     }
 
     const allData = readData();
-    // 全局手机号唯一检查
     if (phone && allData.some(r => r.phone === phone)) {
         return res.status(409).json({ error: '该手机号已提交过，不可重复提交' });
     }
@@ -234,6 +263,6 @@ app.get('/admin', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`注册页面: http://localhost:${PORT}/register.html`);
-    console.log(`合伙人后台: http://localhost:${PORT}/partner.html?token=您的token`);
+    console.log(`合伙人后台: http://localhost:${PORT}/partner.html`);
     console.log(`管理员后台: http://localhost:${PORT}/admin.html?key=${ADMIN_KEY}`);
 });
