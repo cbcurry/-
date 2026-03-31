@@ -17,28 +17,29 @@
 <body>
 <div class="card">
     <h2>🔑 合伙人注册</h2>
-    <p style="color:#666; margin-bottom: 20px;">填写信息后，系统将为您生成专属二维码</p>
-    <input type="text" id="wechat" placeholder="微信号 *" autocomplete="off">
-    <input type="text" id="address" placeholder="礼品地址（可选）">
-    <input type="text" id="deadline" placeholder="活动截止日期（可选，如 5月10日）">
-    <input type="text" id="giftExtra" placeholder="额外礼品提示（可选）">
+    <p style="color:#666; margin-bottom: 20px;">填写真实姓名和工号，系统将为您生成专属二维码</p>
+    <input type="text" id="realName" placeholder="姓名 *" autocomplete="off">
+    <input type="text" id="employeeId" placeholder="工号 *" autocomplete="off">
     <button id="registerBtn">立即注册</button>
     <div id="errorMsg" class="error"></div>
-    <div class="info">注册后您将获得专属客户问卷链接和二维码</div>
+    <div class="info">注册后您将获得专属客户问卷链接和二维码，其他信息可在后台补充</div>
 </div>
 
 <script>
     document.getElementById('registerBtn').addEventListener('click', async () => {
-        const wechat = document.getElementById('wechat').value.trim();
-        if (!wechat) {
-            document.getElementById('errorMsg').innerText = '请填写微信号';
+        const realName = document.getElementById('realName').value.trim();
+        const employeeId = document.getElementById('employeeId').value.trim();
+        if (!realName) {
+            document.getElementById('errorMsg').innerText = '请填写姓名';
+            return;
+        }
+        if (!employeeId) {
+            document.getElementById('errorMsg').innerText = '请填写工号';
             return;
         }
         const payload = {
-            wechat,
-            address: document.getElementById('address').value,
-            deadline: document.getElementById('deadline').value,
-            giftExtra: document.getElementById('giftExtra').value
+            realName,
+            employeeId
         };
         try {
             const res = await fetch('/api/partner/register', {
@@ -48,7 +49,6 @@
             });
             const data = await res.json();
             if (res.ok) {
-                // 注册成功，跳转到后台并携带 token
                 window.location.href = `/partner.html?token=${data.token}`;
             } else {
                 document.getElementById('errorMsg').innerText = data.error || '注册失败，请稍后重试';

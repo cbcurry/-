@@ -34,14 +34,16 @@ function writeData(data) {
 
 // ================== 合伙人 API ==================
 
-// 1. 注册
+// 1. 注册（使用姓名 + 工号）
 app.post('/api/partner/register', (req, res) => {
-    const { wechat, address, deadline, giftExtra } = req.body;
-    if (!wechat) return res.status(400).json({ error: '请填写微信号' });
+    const { realName, employeeId } = req.body;
+    if (!realName || !employeeId) {
+        return res.status(400).json({ error: '请填写姓名和工号' });
+    }
 
     const partners = readPartners();
-    // 检查微信号是否已存在（可选，若允许重复注册则注释掉）
-    const existing = partners.find(p => p.wechat === wechat);
+    // 检查工号是否已存在
+    const existing = partners.find(p => p.employeeId === employeeId);
     if (existing) {
         return res.json({ success: true, token: existing.token });
     }
@@ -57,10 +59,12 @@ app.post('/api/partner/register', (req, res) => {
     const newPartner = {
         id: Date.now(),
         token,
-        wechat,
-        address: address || '',
-        deadline: deadline || '',
-        giftExtra: giftExtra || '',
+        realName,
+        employeeId,
+        wechat: '',
+        address: '',
+        deadline: '',
+        giftExtra: '',
         createdAt: new Date().toISOString()
     };
     partners.push(newPartner);
@@ -68,7 +72,7 @@ app.post('/api/partner/register', (req, res) => {
     res.json({ success: true, token });
 });
 
-// 2. 获取合伙人信息
+// 2. 获取合伙人信息（包含姓名、工号等）
 app.get('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -77,26 +81,30 @@ app.get('/api/partner/:token', (req, res) => {
     res.json({
         id: partner.id,
         token: partner.token,
-        wechat: partner.wechat,
-        address: partner.address,
-        deadline: partner.deadline,
-        giftExtra: partner.giftExtra
+        realName: partner.realName,
+        employeeId: partner.employeeId,
+        wechat: partner.wechat || '',
+        address: partner.address || '',
+        deadline: partner.deadline || '',
+        giftExtra: partner.giftExtra || ''
     });
 });
 
-// 3. 更新合伙人配置
+// 3. 更新合伙人配置（可更新所有字段）
 app.put('/api/partner/:token', (req, res) => {
     const { token } = req.params;
-    const { wechat, address, deadline, giftExtra } = req.body;
+    const { realName, employeeId, wechat, address, deadline, giftExtra } = req.body;
     const partners = readPartners();
     const index = partners.findIndex(p => p.token === token);
     if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
     partners[index] = {
         ...partners[index],
-        wechat: wechat || '',
-        address: address || '',
-        deadline: deadline || '',
-        giftExtra: giftExtra || ''
+        realName: realName || partners[index].realName,
+        employeeId: employeeId || partners[index].employeeId,
+        wechat: wechat !== undefined ? wechat : partners[index].wechat,
+        address: address !== undefined ? address : partners[index].address,
+        deadline: deadline !== undefined ? deadline : partners[index].deadline,
+        giftExtra: giftExtra !== undefined ? giftExtra : partners[index].giftExtra
     };
     writePartners(partners);
     res.json({ success: true });
