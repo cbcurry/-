@@ -531,12 +531,11 @@
         <p>填写信息后，我们将为您发送完整性格分析及成长建议</p>
         <input type="text" id="modalNameInput" class="modal-input" placeholder="姓名" autocomplete="off">
         <input type="tel" id="modalPhoneInput" class="modal-input" placeholder="手机号" autocomplete="off">
-        <input type="number" id="modalAgeInput" class="modal-input" placeholder="年龄（18-80）" min="18" max="80">
+        <input type="number" id="modalAgeInput" class="modal-input" placeholder="年龄（28-55）" min="28" max="55">
         <select id="modalGenderInput" class="modal-input" style="background:white;">
             <option value="">请选择性别</option>
             <option value="男">男</option>
             <option value="女">女</option>
-            <option value="其他">其他</option>
         </select>
         <div class="modal-buttons">
             <button id="modalConfirmBtn" class="confirm-btn">确认并复制微信</button>
@@ -835,13 +834,13 @@
             <div class="gift-box">
                 <span>🎁</span> 凭本页面到访<br>
          <strong>${escapeHtml(addressDisplay)}</strong><br>
-                即可领取「专属性格报告」一份！<br>
+                即可领取「精美礼品」一份！<br>
                 <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
             </div>
             <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
-                📢 限时福利：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
+                📢 限时福利：仅限前30名，送完即止
             </div>
-            <button class="recruit-btn" id="contactRecruitBtn">📲 立即领取完整报告</button>
+            <button class="recruit-btn" id="contactRecruitBtn">📲 填写我的获奖信息</button>
             <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享我的性格画像</button>
             <div class="inline-wx">
                 📱 咨询顾问微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
@@ -877,7 +876,7 @@
                         }
                     }
                     const curWechat = (partnerWechat && partnerWechat.trim()) ? partnerWechat : getCurrentConfig().wechat;
-                    copyToClipboard(curWechat, `已复制顾问微信 ${curWechat}，快去添加好友领取报告！`);
+                    copyToClipboard(curWechat, `已复制顾问微信 ${curWechat}，快去添加好友领取好礼！`);
                 });
             });
         }
@@ -931,7 +930,7 @@
             if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的11位手机号'); return; }
             if (!age) { showToast('请填写年龄'); return; }
             const ageNum = parseInt(age);
-            if (isNaN(ageNum) || ageNum < 18 || ageNum > 80) { showToast('年龄请输入18-80之间的数字'); return; }
+            if (isNaN(ageNum) || ageNum < 27 || ageNum > 55) { showToast('年龄请输入28-55之间的数字'); return; }
             if (!gender) { showToast('请选择性别'); return; }
             modal.style.display = 'none';
             isShowingModal = false;
