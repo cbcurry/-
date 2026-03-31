@@ -2,121 +2,242 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>合伙人专属后台</title>
     <style>
-        body { font-family: system-ui; padding: 20px; background: #f5f7fb; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        h2 { color: #1e4663; margin-bottom: 16px; }
-        label { display: block; font-weight: 600; margin: 12px 0 4px; }
-        input, textarea { width: 100%; padding: 10px; border-radius: 12px; border: 1px solid #cbdde9; margin-bottom: 12px; }
-        button { background: #2a86d4; color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; margin-right: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #eef2f5; }
-        .delete-btn { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
-        .share-link { background: #f0f4fa; padding: 12px; border-radius: 16px; margin-top: 16px; word-break: break-all; }
-        .loading { text-align: center; padding: 20px; color: #666; }
-        .qrcode { text-align: center; margin-top: 16px; }
-        .qrcode canvas { max-width: 200px; height: auto; margin: 0 auto; display: block; }
-        .register-form { max-width: 400px; margin: 0 auto; }
-        .register-form h2 { text-align: center; }
-        .error { color: red; margin-top: 8px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
+            padding: 20px 16px 48px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(46, 91, 150, 0.1);
+        }
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e4663;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #2c6280;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #c2d6e8;
+            border-radius: 30px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #fff;
+            transition: 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2a86d4;
+            box-shadow: 0 0 0 2px rgba(42,134,212,0.2);
+        }
+        button {
+            background: #2a86d4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 12px;
+        }
+        button:hover {
+            background: #1e6cb0;
+        }
+        .btn-secondary {
+            background: #eef2f5;
+            color: #2c6eaf;
+        }
+        .btn-secondary:hover {
+            background: #e2e9f0;
+        }
+        .delete-btn {
+            background: #dc3545;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        th {
+            background: #eef2f5;
+            color: #1e4663;
+            font-weight: 600;
+        }
+        .share-link {
+            background: #f0f4fa;
+            padding: 12px;
+            border-radius: 20px;
+            margin-top: 16px;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        .qrcode-area {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c86a3;
+        }
+        .error {
+            color: #dc3545;
+            background: #ffe6e6;
+            padding: 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #28a745;
+            background: #e6ffe6;
+            padding: 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 600px) {
+            .card { padding: 18px; }
+            h2 { font-size: 20px; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            tr { margin-bottom: 16px; border: 1px solid #ddd; border-radius: 16px; padding: 12px; }
+            td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 0; }
+            td:before { content: attr(data-label); font-weight: 600; width: 40%; }
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+    <!-- QRCode 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <div class="container" id="app">
-    <div id="registerView" style="display: none;">
-        <div class="card register-form">
-            <h2>🔑 合伙人登录/注册</h2>
-            <label>请输入您的微信号</label>
-            <input type="text" id="wechatInput" placeholder="例如: cbahluck888">
-            <button id="registerBtn">登录 / 注册</button>
-            <div id="registerError" class="error"></div>
-        </div>
-    </div>
-
-    <div id="mainView" style="display: none;">
-        <div class="card">
-            <h2>🔧 合伙人配置</h2>
-            <label>微信号</label>
-            <input type="text" id="wechat" placeholder="微信号">
-            <label>礼品地址</label>
-            <textarea id="address" rows="2" placeholder="到访地址"></textarea>
-            <label>活动截止日期</label>
-            <input type="text" id="deadline" placeholder="例如 4月30日">
-            <label>额外礼品提示</label>
-            <input type="text" id="giftExtra" placeholder="展业赋能工具包">
-            <button id="saveConfigBtn">保存配置</button>
-            <button id="refreshBtn">刷新</button>
-            <div class="share-link" id="shareLink"></div>
-            <div class="qrcode" id="qrcode"></div>
-        </div>
-
-        <div class="card">
-            <h2>📊 客户提交记录</h2>
-            <div id="recordsList" class="loading">加载中...</div>
-        </div>
-    </div>
+    <div class="loading">加载中...</div>
 </div>
 
 <script>
+    // 获取 URL 参数中的 token
     const urlParams = new URLSearchParams(window.location.search);
     let token = urlParams.get('token');
 
-    // 显示注册视图或主视图
-    function showRegisterView() {
-        document.getElementById('registerView').style.display = 'block';
-        document.getElementById('mainView').style.display = 'none';
-    }
-
-    function showMainView() {
-        document.getElementById('registerView').style.display = 'none';
-        document.getElementById('mainView').style.display = 'block';
-    }
-
+    // 如果没有 token，跳转到注册页面
     if (!token) {
-        showRegisterView();
-    } else {
-        showMainView();
-        loadPartnerData();
-        loadRecords();
+        window.location.href = '/register.html';
     }
 
-    // 注册/登录
-    document.getElementById('registerBtn')?.addEventListener('click', async () => {
-        const wechat = document.getElementById('wechatInput').value.trim();
-        if (!wechat) {
-            document.getElementById('registerError').innerText = '请填写微信号';
-            return;
-        }
-        try {
-            const res = await fetch('/api/partner/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wechat })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                // 重定向到带 token 的页面
-                const newUrl = `${window.location.origin}${window.location.pathname}?token=${data.token}`;
-                window.location.href = newUrl;
-            } else {
-                document.getElementById('registerError').innerText = data.error || '注册失败';
-            }
-        } catch (err) {
-            document.getElementById('registerError').innerText = '网络错误';
-        }
-    });
+    // API 基础路径
+    const apiBase = '';
 
-    // 加载合伙人信息
-    async function loadPartnerData() {
+    // 页面元素引用
+    let appDiv = document.getElementById('app');
+
+    // 渲染页面
+    async function renderPage() {
+        appDiv.innerHTML = `
+            <div class="card">
+                <h2>🔧 合伙人配置</h2>
+                <div class="form-group">
+                    <label>微信号 *</label>
+                    <input type="text" id="wechat" placeholder="用于客户添加咨询">
+                </div>
+                <div class="form-group">
+                    <label>礼品领取地址</label>
+                    <textarea id="address" rows="2" placeholder="例如：南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>活动截止日期</label>
+                    <input type="text" id="deadline" placeholder="例如：5月10日">
+                </div>
+                <div class="form-group">
+                    <label>额外礼品提示</label>
+                    <input type="text" id="giftExtra" placeholder="例如：展业赋能工具包+1v1规划">
+                </div>
+                <div>
+                    <button id="saveConfigBtn">💾 保存配置</button>
+                    <button id="refreshBtn" class="btn-secondary">🔄 刷新</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📱 您的专属客户问卷</h2>
+                <div id="qrcode" class="qrcode-area"></div>
+                <div class="share-link" id="shareLink"></div>
+                <p style="font-size:12px; color:#6c86a3; text-align:center; margin-top:12px;">客户扫描二维码或点击链接即可参与测评，提交后数据自动归集到您的名下</p>
+            </div>
+
+            <div class="card">
+                <h2>📊 客户提交记录</h2>
+                <div id="recordsList">加载中...</div>
+            </div>
+        `;
+
+        // 加载合伙人信息
+        await loadPartner();
+        // 加载客户记录
+        await loadRecords();
+
+        // 绑定保存按钮
+        document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadPartner();
+            loadRecords();
+        });
+    }
+
+    async function loadPartner() {
         try {
             const res = await fetch(`/api/partner/${token}`);
-            if (!res.ok) throw new Error('合伙人不存在');
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error('合伙人不存在，请重新注册');
+                }
+                throw new Error('加载失败');
+            }
             const data = await res.json();
+            // 填充表单
             document.getElementById('wechat').value = data.wechat || '';
             document.getElementById('address').value = data.address || '';
             document.getElementById('deadline').value = data.deadline || '';
@@ -124,91 +245,117 @@
 
             // 生成分享链接和二维码
             const shareUrl = `${window.location.origin}/?pid=${token}`;
-            const shareHtml = `<strong>分享链接（客户点击此链接填写问卷）:</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br>
-                                <button id="copyLinkBtn">复制链接</button>`;
-            document.getElementById('shareLink').innerHTML = shareHtml;
+            const shareLinkDiv = document.getElementById('shareLink');
+            shareLinkDiv.innerHTML = `<strong>客户问卷链接：</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br><button id="copyLinkBtn" class="btn-secondary" style="margin-top:8px;">📋 复制链接</button>`;
             document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
                 navigator.clipboard.writeText(shareUrl);
-                alert('链接已复制');
+                alert('链接已复制到剪贴板');
             });
 
-            // 生成二维码
+            // 生成二维码（需要确保 qrcode 库已加载）
             const qrcodeDiv = document.getElementById('qrcode');
             qrcodeDiv.innerHTML = ''; // 清空
             new QRCode(qrcodeDiv, {
                 text: shareUrl,
                 width: 200,
                 height: 200,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.M
+                colorDark: "#1e4663",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
         } catch (err) {
-            alert('加载合伙人信息失败：' + err.message);
+            showError(`加载合伙人信息失败：${err.message}`);
         }
     }
 
-    // 保存配置
     async function saveConfig() {
-        const wechat = document.getElementById('wechat').value;
-        const address = document.getElementById('address').value;
-        const deadline = document.getElementById('deadline').value;
-        const giftExtra = document.getElementById('giftExtra').value;
+        const wechat = document.getElementById('wechat').value.trim();
+        if (!wechat) {
+            alert('微信号不能为空');
+            return;
+        }
+        const payload = {
+            wechat,
+            address: document.getElementById('address').value,
+            deadline: document.getElementById('deadline').value,
+            giftExtra: document.getElementById('giftExtra').value
+        };
         try {
             const res = await fetch(`/api/partner/${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wechat, address, deadline, giftExtra })
+                body: JSON.stringify(payload)
             });
-            if (res.ok) alert('保存成功');
-            else alert('保存失败');
+            if (res.ok) {
+                alert('保存成功');
+            } else {
+                alert('保存失败');
+            }
         } catch (err) {
-            alert('保存失败：' + err.message);
+            alert('网络错误');
         }
     }
 
-    // 加载客户记录
     async function loadRecords() {
+        const recordsDiv = document.getElementById('recordsList');
+        recordsDiv.innerHTML = '<div class="loading">加载中...</div>';
         try {
             const res = await fetch(`/api/partner/${token}/records`);
+            if (!res.ok) throw new Error('加载失败');
             const records = await res.json();
-            const container = document.getElementById('recordsList');
             if (records.length === 0) {
-                container.innerHTML = '<p>暂无客户提交记录</p>';
+                recordsDiv.innerHTML = '<p style="text-align:center; color:#6c86a3;">暂无客户提交记录</p>';
                 return;
             }
-            let html = ` 表
-                <thead>
-                    <tr><th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>时间</th><th>操作</th> </tr>
-                </thead>
-                <tbody>
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>提交时间</th><th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
             records.forEach(rec => {
                 html += `
                     <tr>
-                        <td>${escapeHtml(rec.name)}</td>
-                        <td>${escapeHtml(rec.phone)}</td>
-                        <td>${rec.total_score}</td>
-                        <td>${escapeHtml(rec.level)}</td>
-                        <td>${rec.created_at}</td>
-                        <td><button class="delete-btn" data-id="${rec.id}">删除</button></td>
+                        <td data-label="姓名">${escapeHtml(rec.name)}</td>
+                        <td data-label="手机号">${escapeHtml(rec.phone)}</td>
+                        <td data-label="总分">${rec.total_score}</td>
+                        <td data-label="等级">${escapeHtml(rec.level)}</td>
+                        <td data-label="提交时间">${rec.created_at}</td>
+                        <td data-label="操作"><button class="delete-btn" data-id="${rec.id}">删除</button></td>
                     </tr>
                 `;
             });
-            html += `</tbody> 表`;
-            container.innerHTML = html;
+            html += `</tbody></table>`;
+            recordsDiv.innerHTML = html;
+
+            // 绑定删除按钮事件
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('确定删除该记录吗？')) {
                         const id = btn.dataset.id;
-                        await fetch(`/api/partner/${token}/records/${id}`, { method: 'DELETE' });
-                        loadRecords();
+                        const delRes = await fetch(`/api/partner/${token}/records/${id}`, { method: 'DELETE' });
+                        if (delRes.ok) {
+                            loadRecords(); // 刷新列表
+                        } else {
+                            alert('删除失败');
+                        }
                     }
                 });
             });
         } catch (err) {
-            document.getElementById('recordsList').innerHTML = '<p>加载失败</p>';
+            recordsDiv.innerHTML = '<p class="error">加载记录失败，请刷新重试</p>';
         }
+    }
+
+    function showError(msg) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error';
+        errorDiv.innerText = msg;
+        appDiv.insertBefore(errorDiv, appDiv.firstChild);
+        setTimeout(() => errorDiv.remove(), 3000);
     }
 
     function escapeHtml(str) {
@@ -221,8 +368,10 @@
         });
     }
 
-    document.getElementById('saveConfigBtn')?.addEventListener('click', saveConfig);
-    document.getElementById('refreshBtn')?.addEventListener('click', () => { loadPartnerData(); loadRecords(); });
+    // 启动
+    renderPage().catch(err => {
+        appDiv.innerHTML = `<div class="error">初始化失败：${err.message}</div>`;
+    });
 </script>
 </body>
 </html>
