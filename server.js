@@ -50,13 +50,11 @@ app.post('/api/partner/register', (req, res) => {
         return res.status(409).json({ error: '该工号已注册，请勿重复注册' });
     }
 
-    // 生成唯一 token
     let token;
     do {
         token = crypto.randomBytes(8).toString('hex');
     } while (partners.some(p => p.token === token));
 
-    // 密码简单哈希（生产环境建议使用 bcrypt）
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
     const newPartner = {
@@ -94,7 +92,7 @@ app.post('/api/partner/login', (req, res) => {
     res.json({ success: true, token: partner.token });
 });
 
-// 3. 获取合伙人信息（需 token 验证，但不验证密码，仅校验 token 存在）
+// 3. 获取合伙人信息
 app.get('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -112,7 +110,7 @@ app.get('/api/partner/:token', (req, res) => {
     });
 });
 
-// 4. 更新合伙人配置（需 token 验证）
+// 4. 更新合伙人配置
 app.put('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const { realName, employeeId, wechat, address, deadline, giftExtra, password } = req.body;
@@ -120,7 +118,6 @@ app.put('/api/partner/:token', (req, res) => {
     const index = partners.findIndex(p => p.token === token);
     if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
 
-    // 如果要修改工号，需验证唯一性
     if (employeeId && employeeId !== partners[index].employeeId) {
         if (!/^\d{9}$/.test(employeeId)) {
             return res.status(400).json({ error: '工号必须为9位数字' });
@@ -138,6 +135,9 @@ app.put('/api/partner/:token', (req, res) => {
     if (deadline !== undefined) updated.deadline = deadline;
     if (giftExtra !== undefined) updated.giftExtra = giftExtra;
     if (password) {
+        if (password.length < 6) {
+            return res.status(400).json({ error: '密码长度至少6位' });
+        }
         updated.password = crypto.createHash('sha256').update(password).digest('hex');
     }
 
@@ -171,9 +171,9 @@ app.delete('/api/partner/:token/records/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// ================== 客户提交测评 ==================
+// ================== 客户提交测评（新增 age, gender） ==================
 app.post('/api/submit', (req, res) => {
-    const { totalScore, level, title, slogan, wechatConfig, name, phone, partnerToken } = req.body;
+    const { totalScore, level, title, slogan, wechatConfig, name, phone, age, gender, partnerToken } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
 
@@ -202,6 +202,8 @@ app.post('/api/submit', (req, res) => {
         wechatConfig: wechatConfig || '',
         name: name || '',
         phone: phone || '',
+        age: age || null,
+        gender: gender || '',
         ip: ip || '',
         userAgent: userAgent || '',
         partnerId,
@@ -229,6 +231,8 @@ app.get('/api/admin/stats', (req, res) => {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
+                age: c.age,
+                gender: c.gender,
                 totalScore: c.totalScore,
                 level: c.level,
                 createdAt: c.createdAt

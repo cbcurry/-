@@ -459,6 +459,7 @@
         }
     </style>
 </head>
+
 <body>
 <div class="game-container" id="gameApp">
     <div class="hero">
@@ -474,7 +475,7 @@
     <div id="resultContainer" class="result-area hidden"></div>
     <hr />
     <div style="text-align: center; font-size:13px; color:#5f7f9e;">
-        🎁 完成测试可领取 <strong>「精美礼品」</strong><br>
+        🎁 完成测试可领取 <strong>「个性化成长建议报告」</strong><br>
         专业团队助你发挥性格优势
     </div>
     
@@ -523,13 +524,20 @@
     <footer>🌟 发现性格优势 | 开启高适配人生方向</footer>
 </div>
 
-<!-- 联系方式模态框（姓名+手机号） -->
+<!-- 联系方式模态框（新增年龄、性别） -->
 <div id="contactModal" class="modal">
     <div class="modal-content">
         <h3>🎁 领取专属性格报告</h3>
-        <p>填写信息后，我们将为您提供完整性格分析及成长建议</p>
+        <p>填写信息后，我们将为您发送完整性格分析及成长建议</p>
         <input type="text" id="modalNameInput" class="modal-input" placeholder="姓名" autocomplete="off">
         <input type="tel" id="modalPhoneInput" class="modal-input" placeholder="手机号" autocomplete="off">
+        <input type="number" id="modalAgeInput" class="modal-input" placeholder="年龄（18-80）" min="18" max="80">
+        <select id="modalGenderInput" class="modal-input" style="background:white;">
+            <option value="">请选择性别</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+            <option value="其他">其他</option>
+        </select>
         <div class="modal-buttons">
             <button id="modalConfirmBtn" class="confirm-btn">确认并复制微信</button>
             <button id="modalCancelBtn" class="cancel-btn">暂不填写</button>
@@ -604,17 +612,14 @@
     let selectedScores = [null, null, null, null, null];
     let optionElements = [];
     let currentResult = null;
-    let partnerWechat = '';      // 存储从后端获取的合伙人微信号
-    let partnerAddress = '';     // 存储合伙人地址（暂未使用）
-    let partnerDeadline = '';
-    let partnerGiftExtra = '';
+    let partnerWechat = '';
 
-    // 本地配置管理（仅供无pid时演示用）
+    // 本地配置管理
     const DEFAULT_CONFIG = {
         wechat: "cbahcjdx",
         address: "南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险",
         deadline: "4月10日",
-        giftExtra: "礼品"
+        giftExtra: "展业赋能工具包+1v1事业规划"
     };
 
     function loadConfig() {
@@ -671,7 +676,7 @@
         return currentConfig;
     }
 
-    // ---------- 本地统计（仅供演示）----------
+    // 本地统计
     const STORAGE_KEY = "blp_submissions";
     function loadSubmissions() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
@@ -705,16 +710,16 @@
         if (!subs.length) { showToast("暂无记录"); return; }
         let text = "📋 性格测试线索统计\n\n";
         subs.forEach((rec, idx) => {
-            text += `${idx+1}. 姓名：${rec.name}\n   手机号：${rec.phone}\n   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n   提交时间：${rec.time}\n   --------------------\n`;
+            text += `${idx+1}. 姓名：${rec.name}\n   手机号：${rec.phone}\n   年龄：${rec.age}\n   性别：${rec.gender}\n   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n   提交时间：${rec.time}\n   --------------------\n`;
         });
         copyToClipboard(text, "已复制全部线索");
     }
-    function recordSubmission(name, phone, totalScore, level, title) {
+    function recordSubmission(name, phone, age, gender, totalScore, level, title) {
         if (!name || !phone) return;
-        saveSubmission({ name, phone, totalScore, level, title, time: new Date().toLocaleString('zh-CN') });
+        saveSubmission({ name, phone, age, gender, totalScore, level, title, time: new Date().toLocaleString('zh-CN') });
     }
 
-    // ---------- 题目渲染 ----------
+    // 题目渲染
     function renderQuestions() {
         const container = document.getElementById('questionsArea');
         if (!container) return;
@@ -752,7 +757,6 @@
         });
     }
 
-    // 根据总分判定性格类型（不显示分数）
     function getScoreAndLevel() {
         const total = selectedScores.reduce((acc, val) => acc + (val || 0), 0);
         let level = '', title = '', slogan = '';
@@ -776,10 +780,9 @@
         return { total, level, title, slogan };
     }
 
-    // 上报数据到后端
-    async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
+    async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone, age, gender) {
         const payload = {
-            totalScore, level, title, slogan, wechatConfig, name, phone,
+            totalScore, level, title, slogan, wechatConfig, name, phone, age, gender,
             partnerToken: partnerToken || null
         };
         try {
@@ -806,13 +809,11 @@
         }
     }
 
-    // 渲染结果（不显示分数）
     function renderResult(resultData) {
         const { level, title, slogan, total } = resultData;
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.classList.remove('hidden');
         
-        // 决定显示哪个微信号：优先使用从后端获取的合伙人微信号，否则使用本地配置的微信号
         const wechatDisplay = (partnerWechat && partnerWechat.trim()) ? partnerWechat : getCurrentConfig().wechat;
         const addressDisplay = getCurrentConfig().address;
         const deadlineDisplay = getCurrentConfig().deadline;
@@ -834,13 +835,13 @@
             <div class="gift-box">
                 <span>🎁</span> 凭本页面到访<br>
          <strong>${escapeHtml(addressDisplay)}</strong><br>
-                即可领取「精美礼品」一份！<br>
+                即可领取「专属性格报告」一份！<br>
                 <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
             </div>
             <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
-                📢 限时福利：仅限前30名获取
+                📢 限时福利：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
             </div>
-            <button class="recruit-btn" id="contactRecruitBtn">📲 填写我的获奖信息</button>
+            <button class="recruit-btn" id="contactRecruitBtn">📲 立即领取完整报告</button>
             <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享我的性格画像</button>
             <div class="inline-wx">
                 📱 咨询顾问微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
@@ -859,24 +860,24 @@
                     showToast('您已提交过信息，感谢参与！');
                     return;
                 }
-                showContactModal(async (name, phone) => {
-                    if (name && phone) {
+                showContactModal(async (name, phone, age, gender) => {
+                    if (name && phone && age && gender) {
                         alreadySubmitted = true;
                         newBtn.textContent = '✅ 已提交，我们将尽快联系您';
                         newBtn.disabled = true;
                         newBtn.style.opacity = '0.6';
                         newBtn.style.cursor = 'not-allowed';
 
-                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone, age, gender);
                         if (success) {
-                            recordSubmission(name, phone, total, level, title);
+                            recordSubmission(name, phone, age, gender, total, level, title);
                             showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
                         } else {
                             showToast(`提交遇到问题，但已记录您的意向，工作人员会联系您。`);
                         }
                     }
                     const curWechat = (partnerWechat && partnerWechat.trim()) ? partnerWechat : getCurrentConfig().wechat;
-                    copyToClipboard(curWechat, `已复制顾问微信 ${curWechat}，快去添加好友领取好礼！`);
+                    copyToClipboard(curWechat, `已复制顾问微信 ${curWechat}，快去添加好友领取报告！`);
                 });
             });
         }
@@ -905,33 +906,42 @@
         }
     }
 
-    // 模态框
     let isShowingModal = false;
     function showContactModal(callback) {
         if (isShowingModal) return;
         const modal = document.getElementById('contactModal');
         const nameInput = document.getElementById('modalNameInput');
         const phoneInput = document.getElementById('modalPhoneInput');
+        const ageInput = document.getElementById('modalAgeInput');
+        const genderSelect = document.getElementById('modalGenderInput');
         nameInput.value = '';
         phoneInput.value = '';
+        ageInput.value = '';
+        genderSelect.value = '';
         modal.style.display = 'flex';
         isShowingModal = true;
         
         const confirmHandler = () => {
             const name = nameInput.value.trim();
             const phone = phoneInput.value.trim();
+            const age = ageInput.value.trim();
+            const gender = genderSelect.value;
             if (!name) { showToast('请填写姓名'); return; }
             if (!phone) { showToast('请填写手机号'); return; }
             if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的11位手机号'); return; }
+            if (!age) { showToast('请填写年龄'); return; }
+            const ageNum = parseInt(age);
+            if (isNaN(ageNum) || ageNum < 18 || ageNum > 80) { showToast('年龄请输入18-80之间的数字'); return; }
+            if (!gender) { showToast('请选择性别'); return; }
             modal.style.display = 'none';
             isShowingModal = false;
-            if (callback) callback(name, phone);
+            if (callback) callback(name, phone, ageNum, gender);
             cleanup();
         };
         const cancelHandler = () => {
             modal.style.display = 'none';
             isShowingModal = false;
-            if (callback) callback('', '');
+            if (callback) callback('', '', null, '');
             cleanup();
         };
         const cleanup = () => {
@@ -1002,7 +1012,6 @@
         });
     }
 
-    // 如果有 pid，获取合伙人信息以更新微信号
     async function loadPartnerWechat() {
         if (!partnerToken) return;
         try {
@@ -1010,7 +1019,6 @@
             if (res.ok) {
                 const partner = await res.json();
                 partnerWechat = partner.wechat || '';
-                // 如果结果已经渲染，刷新一下微信号显示
                 if (currentResult) renderResult(currentResult);
             }
         } catch (err) {
