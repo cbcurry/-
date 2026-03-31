@@ -98,29 +98,25 @@ app.delete('/api/partner/:token/records/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// 客户提交测评
-app.post('/api/submit', (req, res) => {
-    const { totalScore, level, title, slogan, wechatConfig, name, phone, partnerToken } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'];
+app.post('/api/partner/register', async (req, res) => {
+    const { wechat, address, deadline, giftExtra } = req.body;
+    if (!wechat) return res.status(400).json({ error: '请填写微信号' });
 
-    if (totalScore === undefined) {
-        return res.status(400).json({ error: '缺少必填字段 totalScore' });
+    // 生成唯一 token
+    const token = crypto.randomBytes(8).toString('hex');
+
+    try {
+        await pool.query(
+            `INSERT INTO partners (token, wechat, address, deadline, gift_extra)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [token, wechat, address || '', deadline || '', giftExtra || '']
+        );
+        res.json({ success: true, token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: '注册失败，请稍后重试' });
     }
-
-    // 如果没有 partnerToken，视为无效提交（或可存为匿名，这里返回错误）
-    if (!partnerToken) {
-        return res.status(400).json({ error: '缺少合伙人标识' });
-    }
-
-    const partnerFile = path.join(PARTNERS_DIR, `${partnerToken}.json`);
-    let partner = readJSON(partnerFile);
-    if (!partner) {
-        // 如果合伙人不存在，自动创建（防止错误，但生产环境可拒绝）
-        partner = { token: partnerToken, wechat: '', address: '', deadline: '', giftExtra: '', records: [] };
-    }
-    if (!partner.records) partner.records = [];
-
+});
     // 检查手机号是否已存在（同一合伙人下）
     const exists = partner.records.some(rec => rec.phone === phone);
     if (exists) {
@@ -149,6 +145,8 @@ app.post('/api/submit', (req, res) => {
 app.get('/admin', (req, res) => {
     res.send('请使用合伙人后台访问 /partner.html?token=xxx');
 });
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
