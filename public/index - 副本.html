@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>保险超级合伙人 · 潜力挑战赛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px 16px 48px;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 48px 32px 48px 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+            position: relative;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .badge {
+            display: inline-block;
+            background: #ffd966;
+            color: #b45f06;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e3c72, #2b4c8a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 6px;
+        }
+        .sub {
+            font-size: 15px;
+            color: #4a627a;
+            background: #eef3fc;
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 18px 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(46, 91, 150, 0.1);
+        }
+        .q-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a344d;
+            margin-bottom: 16px;
+        }
+        .q-icon {
+            background: #eef2ff;
+            width: 34px;
+            height: 34px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .opt-btn {
+            background: #f8fafd;
+            border: 1.5px solid #e2edf7;
+            border-radius: 60px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f3b5c;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .opt-btn span:first-child {
+            font-weight: 800;
+            background: #eef2fa;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 40px;
+            color: #1f6392;
+        }
+        .opt-btn.selected {
+            background: #eaf4ff;
+            border-color: #1e88e5;
+            box-shadow: 0 4px 10px rgba(30, 136, 229, 0.15);
+        }
+        .opt-btn.selected span:first-child {
+            background: #1e88e5;
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            margin: 24px 0 12px;
+        }
+        .btn-primary {
+            flex: 2;
+            background: linear-gradient(98deg, #1c6fb0, #2a86d4);
+            border: none;
+            padding: 15px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(30, 100, 180, 0.25);
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-secondary {
+            flex: 1;
+            background: #ecf3fa;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            color: #2c6eaf;
+            cursor: pointer;
+        }
+        .result-area {
+            margin-top: 28px;
+            background: linear-gradient(115deg, #fef9e6, #fff7e8);
+            border-radius: 32px;
+            padding: 18px 18px 22px;
+            border-left: 6px solid #ffb347;
+            transition: all 0.3s;
+        }
+        .result-badge {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .result-score {
+            background: #ffde9c;
+            border-radius: 60px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #a45d00;
+        }
+        .result-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2c3e4e;
+            margin: 12px 0 8px;
+        }
+        .result-desc {
+            color: #3a546d;
+            line-height: 1.45;
+            font-size: 15px;
+            margin: 12px 0 8px;
+        }
+        .recruit-btn {
+            background: #f3a712;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 17px;
+            color: #2c2b28;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .share-btn {
+            background: #eef2f5;
+            margin-top: 12px;
+            border: 1px solid #cbdde9;
+            color: #1f5e99;
+        }
+        .gift-box {
+            background: #e6f7e6;
+            border-radius: 24px;
+            padding: 14px;
+            margin: 16px 0 8px;
+            text-align: center;
+            border: 1px solid #b8e0b8;
+            color: #2c6e2c;
+            font-weight: 500;
+        }
+        .gift-box span {
+            font-size: 20px;
+            margin-right: 6px;
+        }
+        .hidden { display: none; }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e2f3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            z-index: 999;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #8ea0b0;
+        }
+        hr {
+            margin: 20px 0 10px;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #cbdbe0, transparent);
+        }
+        /* 合伙人专属设置面板（仅当无pid时显示） */
+        .admin-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        .admin-toggle button {
+            background: none;
+            border: none;
+            color: #5f7f9e;
+            font-size: 12px;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 6px 12px;
+            opacity: 0.7;
+        }
+        .admin-panel {
+            background: #f4f9fe;
+            border-radius: 28px;
+            padding: 18px;
+            margin-top: 20px;
+            border: 1px solid #cde1f0;
+            transition: all 0.2s;
+        }
+        .admin-panel h4 {
+            font-size: 16px;
+            color: #1e4663;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-field {
+            margin-bottom: 14px;
+        }
+        .admin-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c6280;
+            margin-bottom: 6px;
+        }
+        .admin-field input, .admin-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 30px;
+            border: 1px solid #c2d6e8;
+            background: white;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .admin-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .admin-actions button {
+            flex: 1;
+            background: #e2edf7;
+            border: none;
+            padding: 8px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .admin-actions .save-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .stats-area {
+            margin-top: 20px;
+            border-top: 1px solid #cde1f0;
+            padding-top: 16px;
+        }
+        .stats-area h5 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .stats-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 20px;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .stats-item {
+            border-bottom: 1px solid #e2edf7;
+            padding: 10px 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .stats-item .info {
+            flex: 2;
+        }
+        .stats-item .time {
+            color: #6c86a3;
+            font-size: 11px;
+        }
+        .stats-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .stats-actions button {
+            flex: 1;
+            background: #eef2f5;
+            border: none;
+            border-radius: 30px;
+            padding: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .inline-wx {
+            background: #f0f4fa;
+            border-radius: 32px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            width: 85%;
+            max-width: 340px;
+            border-radius: 32px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1e4663;
+        }
+        .modal-content p {
+            font-size: 14px;
+            color: #4a627a;
+            margin-bottom: 20px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbdde9;
+            border-radius: 60px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-buttons .confirm-btn {
+            background: #2a86d4;
+            color: white;
+        }
+        .modal-buttons .cancel-btn {
+            background: #ecf3fa;
+            color: #2c6eaf;
+        }
+        @media (max-width: 480px) {
+            .game-container { padding: 20px 16px 28px; }
+            .opt-btn { padding: 12px 14px; }
+            .q-title { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameApp">
+    <div class="hero">
+        <div class="badge">🏆 官方增员 · 诚意招募 🏆</div>
+        <h1>保险超级合伙人</h1>
+        <div class="sub">测测你的 <strong>事业潜力值</strong> → 解锁你的保险企业家天赋</div>
+    </div>
+    <div id="questionsArea"></div>
+    <div class="action-buttons">
+        <button class="btn-primary" id="submitBtn">✨ 揭秘我的潜力 ✨</button>
+        <button class="btn-secondary" id="resetBtn">🔄 重测</button>
+    </div>
+    <div id="resultContainer" class="result-area hidden"></div>
+    <hr />
+    <div style="text-align: center; font-size:13px; color:#5f7f9e;">
+        🎁 完成测评即有机会获得 <strong>「保险事业蓝图1v1规划」</strong><br>
+        行业顶尖导师团队，助你成就高光人生
+    </div>
+    
+    <!-- 合伙人专属设置（仅在无pid时显示，用于演示） -->
+    <div class="admin-toggle" id="adminToggle">
+        <button id="toggleAdminBtn">⚙️ 合伙人专属设置 & 线索统计</button>
+    </div>
+    <div id="adminPanel" class="admin-panel hidden">
+        <h4>🔧 个性化配置后台</h4>
+        <div class="admin-field">
+            <label>📱 你的增员微信号 (展示 & 复制)</label>
+            <input type="text" id="configWechat" placeholder="例如: cbahluck888" value="cbahcjdx">
+        </div>
+        <div class="admin-field">
+            <label>📍 到访礼品地址 (展示给客户)</label>
+            <input type="text" id="configAddress" placeholder="公司职场地址" value="南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险">
+        </div>
+        <div class="admin-field">
+            <label>📅 活动截止日期</label>
+            <input type="text" id="configDeadline" placeholder="例如: 4月10日" value="4月10日">
+        </div>
+        <div class="admin-field">
+            <label>🎁 额外礼品提示 (可选)</label>
+            <input type="text" id="configGiftExtra" placeholder="展业赋能工具包+1v1规划" value="展业赋能工具包+1v1事业规划">
+        </div>
+        <div class="admin-actions">
+            <button id="saveConfigBtn" class="save-btn">💾 保存配置 (立即生效)</button>
+            <button id="resetConfigBtn">↺ 恢复默认</button>
+        </div>
+        
+        <div class="stats-area">
+            <h5>📋 提交记录统计（姓名 + 手机号）</h5>
+            <div id="statsList" class="stats-list">
+                <div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>
+            </div>
+            <div class="stats-actions">
+                <button id="copyStatsBtn">📋 复制全部记录</button>
+                <button id="clearStatsBtn">🗑️ 清空所有记录</button>
+            </div>
+            <div style="font-size:11px; color:#6f8faa; margin-top:8px;">*数据保存在您的浏览器中，仅记录已填写姓名+手机号的提交</div>
+        </div>
+        
+        <div style="font-size:12px; margin-top:12px; color:#4d6a8a;">💡 保存配置后，测评结果页、微信号及分享文案都将自动更新为你专属的内容，分享朋友圈更个性！</div>
+    </div>
+    
+    <footer>🌟 寻找有梦想的合伙人 | 收入无上限 · 时间自主 · 终身事业平台</footer>
+</div>
+
+<!-- 联系方式模态框（姓名+手机号） -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <h3>🎁 领取专属礼品与规划</h3>
+        <p>填写信息后，我们将为您安排1v1事业咨询，并赠送专属礼品</p>
+        <input type="text" id="modalNameInput" class="modal-input" placeholder="姓名" autocomplete="off">
+        <input type="tel" id="modalPhoneInput" class="modal-input" placeholder="手机号" autocomplete="off">
+        <div class="modal-buttons">
+            <button id="modalConfirmBtn" class="confirm-btn">确认并复制微信</button>
+            <button id="modalCancelBtn" class="cancel-btn">暂不填写</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    // ---------- 获取 URL 参数 pid（合伙人标识） ----------
+    const urlParams = new URLSearchParams(window.location.search);
+    const partnerToken = urlParams.get('pid');
+
+    // 如果有 pid，则隐藏合伙人专属面板（客户页面不应看到）
+    if (partnerToken) {
+        const adminToggle = document.getElementById('adminToggle');
+        const adminPanel = document.getElementById('adminPanel');
+        if (adminToggle) adminToggle.style.display = 'none';
+        if (adminPanel) adminPanel.style.display = 'none';
+    }
+
+    // ---------- 题库 (5题) ----------
+    const questions = [
+        {
+            text: "在社交或工作圈中，你通常扮演什么角色？",
+            icon: "🧠",
+            options: [
+                { label: "A. 核心连接者，主动拓展人脉，乐于分享机会", score: 10 },
+                { label: "B. 倾听思考者，深度链接少数人，注重信任积累", score: 6 }
+            ]
+        },
+        {
+            text: "当遇到拒绝或挫折时，你的第一反应是？",
+            icon: "⚡",
+            options: [
+                { label: "A. 越挫越勇，复盘改进，把拒绝当成成长阶梯", score: 10 },
+                { label: "B. 需要短暂调整，获得团队支持后继续前行", score: 5 }
+            ]
+        },
+        {
+            text: "关于收入与回报，你更认同哪种描述？",
+            icon: "💰",
+            options: [
+                { label: "A. 渴望上不封顶，多劳多得，用努力撬动高收入", score: 10 },
+                { label: "B. 偏好稳健可预期的报酬，同时兼顾成就感", score: 5 }
+            ]
+        },
+        {
+            text: "对于保险行业，你的态度是？",
+            icon: "🏛️",
+            options: [
+                { label: "A. 朝阳行业，愿意深入了解并作为长期事业", score: 10 },
+                { label: "B. 观望中，需要更多成功案例和团队支持", score: 6 }
+            ]
+        },
+        {
+            text: "如果给你一个创业平台，你最看重什么？",
+            icon: "🚀",
+            options: [
+                { label: "A. 品牌实力 + 培训体系 + 晋升公平", score: 10 },
+                { label: "B. 团队氛围好，有人手把手带教", score: 7 }
+            ]
+        }
+    ];
+
+    let selectedScores = [null, null, null, null, null];
+    let optionElements = [];
+    let currentResult = null;
+
+    // 配置管理 (localStorage)
+    const DEFAULT_CONFIG = {
+        wechat: "cbahcjdx",
+        address: "南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险",
+        deadline: "4月10日",
+        giftExtra: "展业赋能工具包+1v1事业规划"
+    };
+
+    function loadConfig() {
+        try {
+            const saved = localStorage.getItem("blp_partner_config");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return { ...DEFAULT_CONFIG, ...parsed };
+            }
+        } catch(e) {}
+        return { ...DEFAULT_CONFIG };
+    }
+
+    function saveConfigToLocal(config) {
+        localStorage.setItem("blp_partner_config", JSON.stringify(config));
+    }
+
+    let currentConfig = loadConfig();
+
+    function updateConfigFieldUI() {
+        document.getElementById('configWechat').value = currentConfig.wechat;
+        document.getElementById('configAddress').value = currentConfig.address;
+        document.getElementById('configDeadline').value = currentConfig.deadline;
+        document.getElementById('configGiftExtra').value = currentConfig.giftExtra;
+    }
+
+    function persistAndApply(newConfig) {
+        currentConfig = { ...newConfig };
+        saveConfigToLocal(currentConfig);
+        updateConfigFieldUI();
+        showToast("✅ 个性化配置已保存！下次测评结果页将展示你的专属信息");
+        const resultContainer = document.getElementById('resultContainer');
+        if (resultContainer && !resultContainer.classList.contains('hidden') && currentResult) {
+            renderResult(currentResult);
+        }
+    }
+
+    function resetToDefault() {
+        persistAndApply({ ...DEFAULT_CONFIG });
+        showToast("已恢复默认配置");
+    }
+
+    function saveFromForm() {
+        const newWechat = document.getElementById('configWechat').value.trim();
+        const newAddress = document.getElementById('configAddress').value.trim();
+        const newDeadline = document.getElementById('configDeadline').value.trim();
+        const newGiftExtra = document.getElementById('configGiftExtra').value.trim();
+        if (!newWechat) {
+            showToast("微信号不能为空");
+            return;
+        }
+        persistAndApply({
+            wechat: newWechat,
+            address: newAddress || DEFAULT_CONFIG.address,
+            deadline: newDeadline || DEFAULT_CONFIG.deadline,
+            giftExtra: newGiftExtra || DEFAULT_CONFIG.giftExtra
+        });
+    }
+
+    function getCurrentConfig() {
+        return currentConfig;
+    }
+
+    // 本地统计功能 (localStorage) - 仅用于演示，实际数据在服务器
+    const STORAGE_KEY = "blp_submissions";
+
+    function loadSubmissions() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return [];
+    }
+
+    function saveSubmission(record) {
+        const submissions = loadSubmissions();
+        submissions.unshift(record);
+        if (submissions.length > 200) submissions.pop();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+        renderStatsList();
+    }
+
+    function clearAllSubmissions() {
+        if (confirm("⚠️ 确认清空所有记录吗？此操作不可恢复。")) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderStatsList();
+            showToast("所有记录已清空");
+        }
+    }
+
+    function renderStatsList() {
+        const submissions = loadSubmissions();
+        const container = document.getElementById('statsList');
+        if (!container) return;
+        if (submissions.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>';
+            return;
+        }
+        let html = '';
+        submissions.forEach(rec => {
+            html += `
+                <div class="stats-item">
+                    <div class="info">
+                        <strong>👤 ${escapeHtml(rec.name || '')}</strong><br>
+                        📱 ${escapeHtml(rec.phone || '')}<br>
+                        🧩 ${rec.level || ''} · ${rec.totalScore}分<br>
+                        ${rec.title || ''}
+                    </div>
+                    <div class="time">${rec.time || ''}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function copyAllRecords() {
+        const submissions = loadSubmissions();
+        if (submissions.length === 0) {
+            showToast("暂无记录可复制");
+            return;
+        }
+        let text = "📋 保险合伙人测评线索统计\n\n";
+        submissions.forEach((rec, idx) => {
+            text += `${idx+1}. 姓名：${rec.name || '未填写'}\n`;
+            text += `   手机号：${rec.phone || '未填写'}\n`;
+            text += `   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n`;
+            text += `   提交时间：${rec.time}\n`;
+            text += `   --------------------\n`;
+        });
+        copyToClipboard(text, "已复制全部线索到剪贴板");
+    }
+
+    function recordSubmission(name, phone, totalScore, level, title) {
+        if (!name || !phone) return;
+        const record = {
+            name: name.trim(),
+            phone: phone.trim(),
+            totalScore: totalScore,
+            level: level,
+            title: title,
+            time: new Date().toLocaleString('zh-CN')
+        };
+        saveSubmission(record);
+    }
+
+    // ---------- 测评渲染 ----------
+    function renderQuestions() {
+        const container = document.getElementById('questionsArea');
+        if (!container) return;
+        container.innerHTML = '';
+        optionElements = [];
+        questions.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'q-title';
+            titleDiv.innerHTML = `<div class="q-icon">${q.icon}</div><div>${q.text}</div>`;
+            card.appendChild(titleDiv);
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+            q.options.forEach((opt, optIdx) => {
+                const btn = document.createElement('div');
+                btn.className = 'opt-btn';
+                btn.setAttribute('data-q', idx);
+                btn.setAttribute('data-opt', optIdx);
+                btn.setAttribute('data-score', opt.score);
+                btn.innerHTML = `<span>${String.fromCharCode(65+optIdx)}</span><span>${opt.label}</span>`;
+                btn.addEventListener('click', () => {
+                    selectedScores[idx] = opt.score;
+                    if (optionElements[idx]) {
+                        optionElements[idx].forEach(b => b.classList.remove('selected'));
+                    }
+                    btn.classList.add('selected');
+                });
+                optionsDiv.appendChild(btn);
+                if (!optionElements[idx]) optionElements[idx] = [];
+                optionElements[idx][optIdx] = btn;
+            });
+            card.appendChild(optionsDiv);
+            container.appendChild(card);
+        });
+    }
+
+    function getScoreAndLevel() {
+        const total = selectedScores.reduce((acc, val) => acc + (val || 0), 0);
+        let level = '', title = '', slogan = '';
+        if (total >= 45) {
+            level = '卓越总监级';
+            title = '👑 保险企业家 · 领袖潜质';
+            slogan = '天生领导者，战略视野+强大影响力，适合打造百人团队，共创保险新生态！';
+        } else if (total >= 35) {
+            level = '精英主管级';
+            title = '🚀 金牌合伙人 · 中坚力量';
+            slogan = '目标感强，高情商+抗压力，快速晋升团队主管，享受高额管理津贴与荣誉。';
+        } else if (total >= 25) {
+            level = '潜力新星';
+            title = '🌟 创业新锐 · 未来可期';
+            slogan = '白板起步也无畏！公司提供全套培训+师徒制陪跑，从零到一成为保险专家。';
+        } else {
+            level = '预备新秀';
+            title = '🌱 待发掘的宝藏';
+            slogan = '每个人都拥有无限可能，我们有专业规划师帮你挖掘优势，助你开启事业第二曲线。';
+        }
+        return { total, level, title, slogan };
+    }
+
+    // 上报数据到后端
+    async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
+        const payload = {
+            totalScore: totalScore,
+            level: level,
+            title: title,
+            slogan: slogan,
+            wechatConfig: wechatConfig,
+            name: name,
+            phone: phone,
+            partnerToken: partnerToken || null
+        };
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                if (response.status === 409) {
+                    showToast('该手机号已提交过，不可重复提交');
+                    return false;
+                } else {
+                    console.warn('后端上报失败:', error);
+                    showToast('提交失败，请稍后重试');
+                    return false;
+                }
+            }
+            showToast('数据已保存，我们将尽快联系您');
+            return true;
+        } catch (err) {
+            console.warn('数据上报失败', err);
+            showToast('网络问题，数据未保存，请稍后重试');
+            return false;
+        }
+    }
+
+    function renderResult(resultData) {
+        const { total, level, title, slogan } = resultData;
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.classList.remove('hidden');
+        
+        const cfg = getCurrentConfig();
+        const wechatDisplay = cfg.wechat;
+        const addressDisplay = cfg.address;
+        const deadlineDisplay = cfg.deadline;
+        const giftExtraDisplay = cfg.giftExtra;
+        
+        resultContainer.innerHTML = `
+            <div class="result-badge">
+                <span>🏅 你的潜力指数</span>
+                <span class="result-score">${total}分 / 50分</span>
+            </div>
+            <div class="result-title">${title}</div>
+            <div class="result-desc">
+                <strong>✨ ${level} · 特质解读：</strong> ${slogan}<br><br>
+                🎯 保险行业迎来黄金时代，我们正在寻找像你一样优秀的「保险合伙人」！<br>
+                ✅ 弹性工作时间，兼顾家庭与事业<br>
+                ✅ 国际化培训体系+无限晋升通道<br>
+                ✅ 每年多轮高峰会、荣誉宴、免费环球旅游<br>
+                💎 与优秀者同行，让每一份努力都兑现价值！
+            </div>
+            <div class="gift-box">
+                <span>🎁</span> 凭本页面到访<br>
+         <strong>${escapeHtml(addressDisplay)}</strong><br>
+                即可领取「精美礼品」一份！<br>
+                <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
+            </div>
+            <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
+                📢 限时增员通道：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
+            </div>
+            <button class="recruit-btn" id="contactRecruitBtn">📲 立即加入 · 领取事业秘籍</button>
+            <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享潜力战绩 · 邀请好友挑战</button>
+            <div class="inline-wx">
+                📱 增员特助微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
+                <span style="font-size:12px; background:#e9ecef; padding:2px 8px; border-radius:30px; margin-left:6px;" id="copyWxBtn">一键复制</span>
+            </div>
+            <div style="font-size:12px; color:#7f8c8d; margin-top:12px;">*添加请备注“合伙人潜力测试” 优先通过；到访请出示本页面截图</div>
+        `;
+
+        let alreadySubmitted = false;
+
+        const contactBtn = document.getElementById('contactRecruitBtn');
+        if (contactBtn) {
+            const newBtn = contactBtn.cloneNode(true);
+            contactBtn.parentNode.replaceChild(newBtn, contactBtn);
+            newBtn.addEventListener('click', async () => {
+                if (alreadySubmitted) {
+                    showToast('您已提交过信息，感谢参与！');
+                    return;
+                }
+                showContactModal(async (name, phone) => {
+                    if (name && phone) {
+                        alreadySubmitted = true;
+                        newBtn.textContent = '✅ 已提交，我们将尽快联系您';
+                        newBtn.disabled = true;
+                        newBtn.style.opacity = '0.6';
+                        newBtn.style.cursor = 'not-allowed';
+
+                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                        if (success) {
+                            recordSubmission(name, phone, total, level, title);
+                            showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
+                        } else {
+                            showToast(`提交遇到问题，但已记录您的意向，工作人员会联系您。`);
+                        }
+                    }
+                    const curWechat = getCurrentConfig().wechat;
+                    copyToClipboard(curWechat, `已复制增员微信号 ${curWechat}，快去添加好友开启事业咨询吧！`);
+                });
+            });
+        }
+
+        const copyWx = document.getElementById('copyWxBtn');
+        if (copyWx) {
+            const newCopy = copyWx.cloneNode(true);
+            copyWx.parentNode.replaceChild(newCopy, copyWx);
+            newCopy.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const curWechat = getCurrentConfig().wechat;
+                copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你并肩同行！`);
+            });
+        }
+
+        const shareBtn = document.getElementById('shareResultBtn');
+        if (shareBtn) {
+            const newShare = shareBtn.cloneNode(true);
+            shareBtn.parentNode.replaceChild(newShare, shareBtn);
+            newShare.addEventListener('click', () => {
+                const { total, level, title } = getScoreAndLevel();
+                const curWechat = getCurrentConfig().wechat;
+                const shareText = `🔥我刚刚测出保险事业潜力【${level} · ${title}】得分${total}/50！\n原来我的基因里藏着保险企业家潜质💎 快来挑战「保险超级合伙人」游戏，看看你的天赋值，一起抓住风口机遇！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取专属事业规划秘籍。\n👉 立即测试：`;
+                copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性微信号！');
+            });
+        }
+    }
+
+    let isShowingModal = false;
+    function showContactModal(callback) {
+        if (isShowingModal) return;
+        const modal = document.getElementById('contactModal');
+        const nameInput = document.getElementById('modalNameInput');
+        const phoneInput = document.getElementById('modalPhoneInput');
+        nameInput.value = '';
+        phoneInput.value = '';
+        modal.style.display = 'flex';
+        isShowingModal = true;
+        
+        const confirmHandler = () => {
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            if (!name) {
+                showToast('请填写姓名');
+                return;
+            }
+            if (!phone) {
+                showToast('请填写手机号');
+                return;
+            }
+            const phonePattern = /^1[3-9]\d{9}$/;
+            if (!phonePattern.test(phone)) {
+                showToast('请输入正确的11位手机号');
+                return;
+            }
+            modal.style.display = 'none';
+            isShowingModal = false;
+            if (callback) callback(name, phone);
+            cleanup();
+        };
+        const cancelHandler = () => {
+            modal.style.display = 'none';
+            isShowingModal = false;
+            if (callback) callback('', '');
+            cleanup();
+        };
+        const cleanup = () => {
+            document.getElementById('modalConfirmBtn').removeEventListener('click', confirmHandler);
+            document.getElementById('modalCancelBtn').removeEventListener('click', cancelHandler);
+        };
+        document.getElementById('modalConfirmBtn').addEventListener('click', confirmHandler);
+        document.getElementById('modalCancelBtn').addEventListener('click', cancelHandler);
+    }
+
+    function handleSubmit() {
+        if (selectedScores.includes(null)) {
+            showToast('请先完成全部5道潜力测试题，再揭秘结果哦 👀');
+            return;
+        }
+        const result = getScoreAndLevel();
+        currentResult = result;
+        renderResult(result);
+    }
+
+    function resetGame() {
+        selectedScores = [null, null, null, null, null];
+        if (optionElements) {
+            optionElements.forEach(group => {
+                if (group) group.forEach(btn => btn.classList.remove('selected'));
+            });
+        }
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.classList.add('hidden');
+        currentResult = null;
+        showToast('已重置，重新测试看看你的潜力吧 👊');
+    }
+
+    function showToast(msg, duration = 2000) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, duration);
+    }
+
+    function copyToClipboard(text, successMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg || '复制成功！');
+            }).catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (success) showToast('复制成功，快去分享吧！');
+        else showToast('手动复制一下哦');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function bindGlobalEvents() {
+        document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
+        
+        const toggleBtn = document.getElementById('toggleAdminBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                adminPanel.classList.toggle('hidden');
+                if (!adminPanel.classList.contains('hidden')) {
+                    updateConfigFieldUI();
+                    renderStatsList();
+                }
+            });
+        }
+        document.getElementById('saveConfigBtn')?.addEventListener('click', saveFromForm);
+        document.getElementById('resetConfigBtn')?.addEventListener('click', resetToDefault);
+        document.getElementById('copyStatsBtn')?.addEventListener('click', copyAllRecords);
+        document.getElementById('clearStatsBtn')?.addEventListener('click', clearAllSubmissions);
+    }
+
+    function init() {
+        renderQuestions();
+        bindGlobalEvents();
+        updateConfigFieldUI();
+        renderStatsList();
+    }
+    init();
+</script>
+</body>
+</html>
