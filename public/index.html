@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>性格解码 · 发现你的天赋特质</title>
     <style>
-        /* 样式与之前相同，此处省略重复样式，实际使用时请复制之前完整样式 */
+        /* 样式与之前相同，此处省略重复样式，请使用之前完整样式 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%); font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px 16px 48px; min-height: 100vh; }
         .game-container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 48px 32px 48px 32px; box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; padding: 24px 20px 32px; }
@@ -27,7 +27,6 @@
         .btn-secondary { flex: 1; background: #ecf3fa; border: none; border-radius: 50px; font-weight: 600; font-size: 15px; color: #2c6eaf; cursor: pointer; }
         .result-area { margin-top: 28px; background: linear-gradient(115deg, #fef9e6, #fff7e8); border-radius: 32px; padding: 18px 18px 22px; border-left: 6px solid #ffb347; transition: all 0.3s; }
         .result-badge { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .result-score { background: #ffde9c; border-radius: 60px; padding: 4px 12px; font-size: 14px; font-weight: 700; color: #a45d00; }
         .result-title { font-size: 22px; font-weight: 800; color: #2c3e4e; margin: 12px 0 8px; }
         .result-desc { color: #3a546d; line-height: 1.45; font-size: 15px; margin: 12px 0 8px; }
         .recruit-btn { background: #f3a712; border: none; width: 100%; padding: 14px; border-radius: 50px; font-weight: 800; font-size: 17px; color: #2c2b28; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
@@ -193,6 +192,9 @@
     let optionElements = [];
     let currentResult = null;
     let partnerWechat = ''; // 从后端获取的合伙人微信号
+    let partnerAddress = ''; // 从后端获取的礼品地址（可选）
+    let partnerDeadline = '';
+    let partnerGiftExtra = '';
 
     // 配置管理（本地，仅供无pid时演示用）
     const DEFAULT_CONFIG = {
@@ -383,17 +385,34 @@
         }
     }
 
-    // 渲染结果（不显示分数）
+    // 从后端获取合伙人信息（用于替换微信号、地址等）
+    async function loadPartnerInfo() {
+        if (!partnerToken) return;
+        try {
+            const res = await fetch(`/api/partner/${partnerToken}`);
+            if (res.ok) {
+                const partner = await res.json();
+                partnerWechat = partner.wechat || '';
+                partnerAddress = partner.address || '';
+                partnerDeadline = partner.deadline || '';
+                partnerGiftExtra = partner.giftExtra || '';
+                // 如果结果已经渲染，刷新一下显示
+                if (currentResult) renderResult(currentResult);
+            }
+        } catch (err) { console.warn('获取合伙人信息失败', err); }
+    }
+
+    // 渲染结果（不显示分数，且使用合伙人配置的微信号、地址等）
     function renderResult(resultData) {
         const { level, title, slogan } = resultData;
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.classList.remove('hidden');
         
-        const cfg = getCurrentConfig();
-        const wechatDisplay = partnerWechat || cfg.wechat;  // 优先使用合伙人微信号
-        const addressDisplay = cfg.address;
-        const deadlineDisplay = cfg.deadline;
-        const giftExtraDisplay = cfg.giftExtra;
+        // 优先使用合伙人配置，否则使用本地配置
+        const wechatDisplay = partnerWechat || getCurrentConfig().wechat;
+        const addressDisplay = partnerAddress || getCurrentConfig().address;
+        const deadlineDisplay = partnerDeadline || getCurrentConfig().deadline;
+        const giftExtraDisplay = partnerGiftExtra || getCurrentConfig().giftExtra;
         
         resultContainer.innerHTML = `
             <div class="result-badge">
@@ -564,20 +583,6 @@
         return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
 
-    // 如果有 pid，获取合伙人信息以更新微信号
-    async function loadPartnerWechat() {
-        if (!partnerToken) return;
-        try {
-            const res = await fetch(`/api/partner/${partnerToken}`);
-            if (res.ok) {
-                const partner = await res.json();
-                partnerWechat = partner.wechat || '';
-                // 如果结果已经渲染，刷新一下微信号显示
-                if (currentResult) renderResult(currentResult);
-            }
-        } catch (err) { console.warn('获取合伙人信息失败', err); }
-    }
-
     function bindGlobalEvents() {
         document.getElementById('submitBtn').addEventListener('click', handleSubmit);
         document.getElementById('resetBtn').addEventListener('click', resetGame);
@@ -603,7 +608,7 @@
         bindGlobalEvents();
         updateConfigFieldUI();
         renderStatsList();
-        await loadPartnerWechat();
+        await loadPartnerInfo(); // 先加载合伙人信息，以便后续结果页显示正确的微信号
     }
     init();
 </script>
