@@ -6,11 +6,10 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 中间件
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ================== 数据文件路径 ==================
+// 数据文件路径
 const PARTNERS_FILE = path.join(__dirname, 'partners.json');
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -18,7 +17,6 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 if (!fs.existsSync(PARTNERS_FILE)) fs.writeFileSync(PARTNERS_FILE, '[]', 'utf8');
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf8');
 
-// ================== 辅助函数 ==================
 function readPartners() {
     return JSON.parse(fs.readFileSync(PARTNERS_FILE, 'utf8'));
 }
@@ -34,27 +32,26 @@ function writeData(data) {
 
 // ================== 合伙人 API ==================
 
-// 1. 注册（使用姓名 + 工号）
+// 注册（姓名 + 工号，工号9位数字且唯一）
 app.post('/api/partner/register', (req, res) => {
     const { realName, employeeId } = req.body;
     if (!realName || !employeeId) {
         return res.status(400).json({ error: '请填写姓名和工号' });
     }
+    if (!/^\d{9}$/.test(employeeId)) {
+        return res.status(400).json({ error: '工号必须为9位数字' });
+    }
 
     const partners = readPartners();
-    // 检查工号是否已存在
-    const existing = partners.find(p => p.employeeId === employeeId);
-    if (existing) {
-        return res.json({ success: true, token: existing.token });
+    // 工号全局唯一
+    if (partners.some(p => p.employeeId === employeeId)) {
+        return res.status(409).json({ error: '该工号已注册，请勿重复注册' });
     }
 
-    // 生成唯一 token
     let token;
-    let exists = true;
-    while (exists) {
+    do {
         token = crypto.randomBytes(8).toString('hex');
-        exists = partners.some(p => p.token === token);
-    }
+    } while (partners.some(p => p.token === token));
 
     const newPartner = {
         id: Date.now(),
@@ -72,7 +69,7 @@ app.post('/api/partner/register', (req, res) => {
     res.json({ success: true, token });
 });
 
-// 2. 获取合伙人信息（包含姓名、工号等）
+// 获取合伙人信息
 app.get('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -90,17 +87,26 @@ app.get('/api/partner/:token', (req, res) => {
     });
 });
 
-// 3. 更新合伙人配置（可更新所有字段）
+// 更新合伙人配置
 app.put('/api/partner/:token', (req, res) => {
     const { token } = req.params;
     const { realName, employeeId, wechat, address, deadline, giftExtra } = req.body;
     const partners = readPartners();
     const index = partners.findIndex(p => p.token === token);
     if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
+    // 如果修改工号，需验证唯一性
+    if (employeeId && employeeId !== partners[index].employeeId) {
+        if (!/^\d{9}$/.test(employeeId)) {
+            return res.status(400).json({ error: '工号必须为9位数字' });
+        }
+        if (partners.some(p => p.employeeId === employeeId && p.token !== token)) {
+            return res.status(409).json({ error: '工号已被其他合伙人使用' });
+        }
+    }
     partners[index] = {
         ...partners[index],
-        realName: realName || partners[index].realName,
-        employeeId: employeeId || partners[index].employeeId,
+        realName: realName !== undefined ? realName : partners[index].realName,
+        employeeId: employeeId !== undefined ? employeeId : partners[index].employeeId,
         wechat: wechat !== undefined ? wechat : partners[index].wechat,
         address: address !== undefined ? address : partners[index].address,
         deadline: deadline !== undefined ? deadline : partners[index].deadline,
@@ -110,7 +116,7 @@ app.put('/api/partner/:token', (req, res) => {
     res.json({ success: true });
 });
 
-// 4. 获取合伙人的客户记录
+// 获取合伙人的客户记录
 app.get('/api/partner/:token/records', (req, res) => {
     const { token } = req.params;
     const partners = readPartners();
@@ -121,7 +127,7 @@ app.get('/api/partner/:token/records', (req, res) => {
     res.json(records);
 });
 
-// 5. 删除客户记录
+// 删除客户记录
 app.delete('/api/partner/:token/records/:id', (req, res) => {
     const { token, id } = req.params;
     const partners = readPartners();
@@ -145,7 +151,6 @@ app.post('/api/submit', (req, res) => {
         return res.status(400).json({ error: '缺少必填字段 totalScore' });
     }
 
-    // 查找合伙人
     let partnerId = null;
     if (partnerToken) {
         const partners = readPartners();
@@ -154,12 +159,9 @@ app.post('/api/submit', (req, res) => {
     }
 
     const allData = readData();
-    // 手机号重复检查（同一合伙人下）
-    if (partnerId && phone) {
-        const exists = allData.some(r => r.partnerId === partnerId && r.phone === phone);
-        if (exists) {
-            return res.status(409).json({ error: '该手机号已提交过，不可重复提交' });
-        }
+    // 全局手机号唯一检查
+    if (phone && allData.some(r => r.phone === phone)) {
+        return res.status(409).json({ error: '该手机号已提交过，不可重复提交' });
     }
 
     const newRecord = {
@@ -184,15 +186,11 @@ app.post('/api/submit', (req, res) => {
 // ================== 管理员功能 ==================
 const ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';
 
-// 获取所有合伙人及客户统计
 app.get('/api/admin/stats', (req, res) => {
     const key = req.query.key;
-    if (key !== ADMIN_KEY) {
-        return res.status(403).json({ error: '无权访问' });
-    }
+    if (key !== ADMIN_KEY) return res.status(403).json({ error: '无权访问' });
     const partners = readPartners();
     const allData = readData();
-
     const partnerStats = partners.map(p => {
         const customers = allData.filter(d => d.partnerId === p.id);
         return {
@@ -211,38 +209,28 @@ app.get('/api/admin/stats', (req, res) => {
     res.json(partnerStats);
 });
 
-// 删除合伙人（谨慎操作，关联客户数据将失去归属）
 app.delete('/api/admin/partner/:id', (req, res) => {
     const key = req.query.key;
-    if (key !== ADMIN_KEY) {
-        return res.status(403).json({ error: '无权访问' });
-    }
+    if (key !== ADMIN_KEY) return res.status(403).json({ error: '无权访问' });
     const partnerId = parseInt(req.params.id);
     let partners = readPartners();
     const index = partners.findIndex(p => p.id === partnerId);
     if (index === -1) return res.status(404).json({ error: '合伙人不存在' });
     partners.splice(index, 1);
     writePartners(partners);
-
-    // 将关联客户数据的 partnerId 置为 null（保留客户记录但无归属）
     let allData = readData();
     allData = allData.map(d => {
-        if (d.partnerId === partnerId) {
-            return { ...d, partnerId: null };
-        }
+        if (d.partnerId === partnerId) return { ...d, partnerId: null };
         return d;
     });
     writeData(allData);
-
     res.json({ success: true });
 });
 
-// ================== 全局后台提示 ==================
 app.get('/admin', (req, res) => {
     res.send('全局后台已移至 /admin.html?key=xxx 访问');
 });
 
-// ================== 启动服务 ==================
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`注册页面: http://localhost:${PORT}/register.html`);

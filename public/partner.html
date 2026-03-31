@@ -5,233 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>合伙人专属后台</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-            background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%);
-            padding: 20px 16px 48px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            border-radius: 32px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(46, 91, 150, 0.1);
-        }
-        h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e4663;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            color: #2c6280;
-            margin-bottom: 6px;
-            font-size: 14px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #c2d6e8;
-            border-radius: 30px;
-            font-size: 15px;
-            font-family: inherit;
-            background: #fff;
-            transition: 0.2s;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #2a86d4;
-            box-shadow: 0 0 0 2px rgba(42,134,212,0.2);
-        }
-        button {
-            background: #2a86d4;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-right: 12px;
-        }
-        button:hover {
-            background: #1e6cb0;
-        }
-        .btn-secondary {
-            background: #eef2f5;
-            color: #2c6eaf;
-        }
-        .btn-secondary:hover {
-            background: #e2e9f0;
-        }
-        .delete-btn {
-            background: #dc3545;
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-        .delete-btn:hover {
-            background: #c82333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-        th, td {
-            border: 1px solid #e2e8f0;
-            padding: 10px 12px;
-            text-align: left;
-        }
-        th {
-            background: #eef2f5;
-            color: #1e4663;
-            font-weight: 600;
-        }
-        .share-link {
-            background: #f0f4fa;
-            padding: 12px;
-            border-radius: 20px;
-            margin-top: 16px;
-            word-break: break-all;
-            font-size: 14px;
-        }
-        .qrcode-area {
-            display: flex;
-            justify-content: center;
-            margin: 16px 0;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6c86a3;
-        }
-        .error {
-            color: #dc3545;
-            background: #ffe6e6;
-            padding: 12px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-        }
-        .success {
-            color: #28a745;
-            background: #e6ffe6;
-            padding: 12px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-        }
-        @media (max-width: 600px) {
-            .card { padding: 18px; }
-            h2 { font-size: 20px; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { margin-bottom: 16px; border: 1px solid #ddd; border-radius: 16px; padding: 12px; }
-            td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 0; }
-            td:before { content: attr(data-label); font-weight: 600; width: 40%; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui; background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%); padding: 20px 16px 48px; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: white; border-radius: 32px; padding: 24px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid rgba(46,91,150,0.1); }
+        h2 { font-size: 24px; font-weight: 700; color: #1e4663; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; color: #2c6280; margin-bottom: 6px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px 16px; border: 1px solid #c2d6e8; border-radius: 30px; font-size: 15px; font-family: inherit; background: #fff; }
+        input:focus, textarea:focus { outline: none; border-color: #2a86d4; box-shadow: 0 0 0 2px rgba(42,134,212,0.2); }
+        button { background: #2a86d4; color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 600; font-size: 15px; cursor: pointer; margin-right: 12px; }
+        button:hover { background: #1e6cb0; }
+        .btn-secondary { background: #eef2f5; color: #2c6eaf; }
+        .btn-secondary:hover { background: #e2e9f0; }
+        .delete-btn { background: #dc3545; padding: 6px 12px; font-size: 13px; }
+        .delete-btn:hover { background: #c82333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+        th { background: #eef2f5; color: #1e4663; font-weight: 600; }
+        .share-link { background: #f0f4fa; padding: 12px; border-radius: 20px; margin-top: 16px; word-break: break-all; font-size: 14px; }
+        .qrcode-area { display: flex; justify-content: center; margin: 16px 0; }
+        .loading { text-align: center; padding: 40px; color: #6c86a3; }
+        .error { color: #dc3545; background: #ffe6e6; padding: 12px; border-radius: 20px; margin-bottom: 20px; }
+        @media (max-width: 600px) { .card { padding: 18px; } h2 { font-size: 20px; } table, thead, tbody, th, td, tr { display: block; } thead { display: none; } tr { margin-bottom: 16px; border: 1px solid #ddd; border-radius: 16px; padding: 12px; } td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 0; } td:before { content: attr(data-label); font-weight: 600; width: 40%; } }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-<div class="container" id="app">
-    <div class="loading">加载中...</div>
-</div>
-
+<div class="container" id="app"><div class="loading">加载中...</div></div>
 <script>
-    // 获取 URL 参数中的 token
     const urlParams = new URLSearchParams(window.location.search);
     let token = urlParams.get('token');
-
-    if (!token) {
-        window.location.href = '/register.html';
-    }
-
+    if (!token) window.location.href = '/register.html';
     let appDiv = document.getElementById('app');
 
     async function renderPage() {
         appDiv.innerHTML = `
             <div class="card">
                 <h2>🔧 合伙人信息配置</h2>
-                <div class="form-group">
-                    <label>姓名 *</label>
-                    <input type="text" id="realName" placeholder="真实姓名">
-                </div>
-                <div class="form-group">
-                    <label>工号 *</label>
-                    <input type="text" id="employeeId" placeholder="工号">
-                </div>
-                <div class="form-group">
-                    <label>微信号</label>
-                    <input type="text" id="wechat" placeholder="用于客户添加咨询（可选）">
-                </div>
-                <div class="form-group">
-                    <label>礼品领取地址</label>
-                    <textarea id="address" rows="2" placeholder="例如：南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险（可选）"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>活动截止日期</label>
-                    <input type="text" id="deadline" placeholder="例如：5月10日（可选）">
-                </div>
-                <div class="form-group">
-                    <label>额外礼品提示</label>
-                    <input type="text" id="giftExtra" placeholder="例如：展业赋能工具包+1v1规划（可选）">
-                </div>
-                <div>
-                    <button id="saveConfigBtn">💾 保存配置</button>
-                    <button id="refreshBtn" class="btn-secondary">🔄 刷新</button>
-                </div>
+                <div class="form-group"><label>姓名 *</label><input type="text" id="realName" placeholder="真实姓名"></div>
+                <div class="form-group"><label>工号（9位数字） *</label><input type="text" id="employeeId" placeholder="工号" maxlength="9"></div>
+                <div class="form-group"><label>微信号</label><input type="text" id="wechat" placeholder="用于客户添加咨询（可选）"></div>
+                <div class="form-group"><label>礼品领取地址</label><textarea id="address" rows="2" placeholder="例如：南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险（可选）"></textarea></div>
+                <div class="form-group"><label>活动截止日期</label><input type="text" id="deadline" placeholder="例如：5月10日（可选）"></div>
+                <div class="form-group"><label>额外礼品提示</label><input type="text" id="giftExtra" placeholder="例如：展业赋能工具包+1v1规划（可选）"></div>
+                <div><button id="saveConfigBtn">💾 保存配置</button><button id="refreshBtn" class="btn-secondary">🔄 刷新</button></div>
             </div>
-
-            <div class="card">
-                <h2>📱 您的专属客户问卷</h2>
-                <div id="qrcode" class="qrcode-area"></div>
-                <div class="share-link" id="shareLink"></div>
-                <p style="font-size:12px; color:#6c86a3; text-align:center; margin-top:12px;">客户扫描二维码或点击链接即可参与测评，提交后数据自动归集到您的名下</p>
-            </div>
-
-            <div class="card">
-                <h2>📊 客户提交记录</h2>
-                <div id="recordsList">加载中...</div>
-            </div>
+            <div class="card"><h2>📱 您的专属客户问卷</h2><div id="qrcode" class="qrcode-area"></div><div class="share-link" id="shareLink"></div><p style="font-size:12px; color:#6c86a3; text-align:center; margin-top:12px;">客户扫描二维码或点击链接即可参与测评，提交后数据自动归集到您的名下</p></div>
+            <div class="card"><h2>📊 客户提交记录</h2><div id="recordsList">加载中...</div></div>
         `;
-
         await loadPartner();
         await loadRecords();
-
         document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            loadPartner();
-            loadRecords();
-        });
+        document.getElementById('refreshBtn').addEventListener('click', () => { loadPartner(); loadRecords(); });
     }
 
     async function loadPartner() {
         try {
             const res = await fetch(`/api/partner/${token}`);
-            if (!res.ok) {
-                if (res.status === 404) throw new Error('合伙人不存在，请重新注册');
-                throw new Error('加载失败');
-            }
+            if (!res.ok) throw new Error('合伙人不存在');
             const data = await res.json();
             document.getElementById('realName').value = data.realName || '';
             document.getElementById('employeeId').value = data.employeeId || '';
@@ -239,59 +71,32 @@
             document.getElementById('address').value = data.address || '';
             document.getElementById('deadline').value = data.deadline || '';
             document.getElementById('giftExtra').value = data.giftExtra || '';
-
             const shareUrl = `${window.location.origin}/?pid=${token}`;
-            const shareLinkDiv = document.getElementById('shareLink');
-            shareLinkDiv.innerHTML = `<strong>客户问卷链接：</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br><button id="copyLinkBtn" class="btn-secondary" style="margin-top:8px;">📋 复制链接</button>`;
-            document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
-                navigator.clipboard.writeText(shareUrl);
-                alert('链接已复制到剪贴板');
-            });
-
+            const shareDiv = document.getElementById('shareLink');
+            shareDiv.innerHTML = `<strong>客户问卷链接：</strong><br><a href="${shareUrl}" target="_blank">${shareUrl}</a><br><button id="copyLinkBtn" class="btn-secondary" style="margin-top:8px;">📋 复制链接</button>`;
+            document.getElementById('copyLinkBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(shareUrl); alert('链接已复制'); });
             const qrcodeDiv = document.getElementById('qrcode');
             qrcodeDiv.innerHTML = '';
-            new QRCode(qrcodeDiv, {
-                text: shareUrl,
-                width: 200,
-                height: 200,
-                colorDark: "#1e4663",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } catch (err) {
-            showError(`加载合伙人信息失败：${err.message}`);
-        }
+            new QRCode(qrcodeDiv, { text: shareUrl, width: 200, height: 200, colorDark: "#1e4663", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+        } catch (err) { showError(`加载失败：${err.message}`); }
     }
 
     async function saveConfig() {
         const realName = document.getElementById('realName').value.trim();
         const employeeId = document.getElementById('employeeId').value.trim();
-        if (!realName || !employeeId) {
-            alert('姓名和工号不能为空');
-            return;
-        }
+        if (!realName || !employeeId) { alert('姓名和工号不能为空'); return; }
+        if (!/^\d{9}$/.test(employeeId)) { alert('工号必须为9位数字'); return; }
         const payload = {
-            realName,
-            employeeId,
+            realName, employeeId,
             wechat: document.getElementById('wechat').value,
             address: document.getElementById('address').value,
             deadline: document.getElementById('deadline').value,
             giftExtra: document.getElementById('giftExtra').value
         };
         try {
-            const res = await fetch(`/api/partner/${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                alert('保存成功');
-            } else {
-                alert('保存失败');
-            }
-        } catch (err) {
-            alert('网络错误');
-        }
+            const res = await fetch(`/api/partner/${token}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) alert('保存成功'); else alert('保存失败');
+        } catch (err) { alert('网络错误'); }
     }
 
     async function loadRecords() {
@@ -299,75 +104,30 @@
         recordsDiv.innerHTML = '<div class="loading">加载中...</div>';
         try {
             const res = await fetch(`/api/partner/${token}/records`);
-            if (!res.ok) throw new Error('加载失败');
+            if (!res.ok) throw new Error();
             const records = await res.json();
-            if (records.length === 0) {
-                recordsDiv.innerHTML = '<p style="text-align:center; color:#6c86a3;">暂无客户提交记录</p>';
-                return;
-            }
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>提交时间</th><th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            if (records.length === 0) { recordsDiv.innerHTML = '<p style="text-align:center; color:#6c86a3;">暂无客户提交记录</p>'; return; }
+            let html = `<table><thead><tr><th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>提交时间</th><th>操作</th></tr></thead><tbody>`;
             records.forEach(rec => {
-                html += `
-                    <tr>
-                        <td data-label="姓名">${escapeHtml(rec.name)}</td>
-                        <td data-label="手机号">${escapeHtml(rec.phone)}</td>
-                        <td data-label="总分">${rec.totalScore}</td>
-                        <td data-label="等级">${escapeHtml(rec.level)}</td>
-                        <td data-label="提交时间">${rec.createdAt}</td>
-                        <td data-label="操作"><button class="delete-btn" data-id="${rec.id}">删除</button></td>
-                    </tr>
-                `;
+                html += `<tr><td data-label="姓名">${escapeHtml(rec.name)}</td><td data-label="手机号">${escapeHtml(rec.phone)}</td><td data-label="总分">${rec.totalScore}</td><td data-label="等级">${escapeHtml(rec.level)}</td><td data-label="提交时间">${rec.createdAt}</td><td data-label="操作"><button class="delete-btn" data-id="${rec.id}">删除</button></td></tr>`;
             });
             html += `</tbody></table>`;
             recordsDiv.innerHTML = html;
-
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('确定删除该记录吗？')) {
                         const id = btn.dataset.id;
-                        const delRes = await fetch(`/api/partner/${token}/records/${id}`, { method: 'DELETE' });
-                        if (delRes.ok) {
-                            loadRecords();
-                        } else {
-                            alert('删除失败');
-                        }
+                        await fetch(`/api/partner/${token}/records/${id}`, { method: 'DELETE' });
+                        loadRecords();
                     }
                 });
             });
-        } catch (err) {
-            recordsDiv.innerHTML = '<p class="error">加载记录失败，请刷新重试</p>';
-        }
+        } catch (err) { recordsDiv.innerHTML = '<p class="error">加载记录失败，请刷新重试</p>'; }
     }
 
-    function showError(msg) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error';
-        errorDiv.innerText = msg;
-        appDiv.insertBefore(errorDiv, appDiv.firstChild);
-        setTimeout(() => errorDiv.remove(), 3000);
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    renderPage().catch(err => {
-        appDiv.innerHTML = `<div class="error">初始化失败：${err.message}</div>`;
-    });
+    function showError(msg) { const div = document.createElement('div'); div.className = 'error'; div.innerText = msg; appDiv.insertBefore(div, appDiv.firstChild); setTimeout(() => div.remove(), 3000); }
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    renderPage().catch(err => { appDiv.innerHTML = `<div class="error">初始化失败：${err.message}</div>`; });
 </script>
 </body>
 </html>

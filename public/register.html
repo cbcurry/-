@@ -17,9 +17,9 @@
 <body>
 <div class="card">
     <h2>🔑 合伙人注册</h2>
-    <p style="color:#666; margin-bottom: 20px;">填写真实姓名和工号，系统将为您生成专属二维码</p>
+    <p style="color:#666; margin-bottom: 20px;">填写真实姓名和9位工号，系统将为您生成专属二维码</p>
     <input type="text" id="realName" placeholder="姓名 *" autocomplete="off">
-    <input type="text" id="employeeId" placeholder="工号 *" autocomplete="off">
+    <input type="text" id="employeeId" placeholder="工号（9位数字） *" autocomplete="off" maxlength="9">
     <button id="registerBtn">立即注册</button>
     <div id="errorMsg" class="error"></div>
     <div class="info">注册后您将获得专属客户问卷链接和二维码，其他信息可在后台补充</div>
@@ -37,10 +37,11 @@
             document.getElementById('errorMsg').innerText = '请填写工号';
             return;
         }
-        const payload = {
-            realName,
-            employeeId
-        };
+        if (!/^\d{9}$/.test(employeeId)) {
+            document.getElementById('errorMsg').innerText = '工号必须为9位数字';
+            return;
+        }
+        const payload = { realName, employeeId };
         try {
             const res = await fetch('/api/partner/register', {
                 method: 'POST',

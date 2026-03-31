@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>性格解码 · 发现你的天赋特质</title>
     <style>
-        /* 样式与之前完全相同，此处省略重复代码，实际使用时请复制之前完整样式 */
+        /* 样式与之前相同，此处省略重复样式，实际使用时请复制之前完整样式 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: linear-gradient(145deg, #f0f7ff 0%, #e9f0fa 100%); font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px 16px 48px; min-height: 100vh; }
         .game-container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 48px 32px 48px 32px; box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; padding: 24px 20px 32px; }
@@ -150,72 +150,51 @@
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    // ---------- 获取 URL 参数 pid（合伙人标识） ----------
+    // 获取 URL 参数 pid（合伙人标识）
     const urlParams = new URLSearchParams(window.location.search);
     const partnerToken = urlParams.get('pid');
 
-    // 如果有 pid，则隐藏合伙人专属面板（客户页面不应看到）
+    // 隐藏合伙人面板
     if (partnerToken) {
-        const adminToggle = document.getElementById('adminToggle');
-        const adminPanel = document.getElementById('adminPanel');
-        if (adminToggle) adminToggle.style.display = 'none';
-        if (adminPanel) adminPanel.style.display = 'none';
+        document.getElementById('adminToggle').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'none';
     }
 
-    // ---------- 性格测试题库（5题，每题分数范围 1-10 或类似） ----------
+    // 题库（性格测试）
     const questions = [
-        {
-            text: "在社交聚会中，你通常更喜欢？",
-            icon: "🗣️",
-            options: [
-                { label: "A. 成为焦点，主动与很多人交谈", score: 10 },
-                { label: "B. 与少数几个熟悉的人深入交流", score: 5 },
-                { label: "C. 独自观察，很少主动开口", score: 2 }
-            ]
-        },
-        {
-            text: "当面对一个复杂问题时，你更倾向于？",
-            icon: "🧩",
-            options: [
-                { label: "A. 立即行动，边做边调整", score: 9 },
-                { label: "B. 先分析所有可能性再行动", score: 6 },
-                { label: "C. 寻求他人帮助或参考经验", score: 4 }
-            ]
-        },
-        {
-            text: "对于新鲜事物（如新科技、新爱好），你的态度是？",
-            icon: "✨",
-            options: [
-                { label: "A. 充满好奇，乐于尝试", score: 10 },
-                { label: "B. 观望一段时间再决定", score: 6 },
-                { label: "C. 比较排斥，喜欢稳定", score: 2 }
-            ]
-        },
-        {
-            text: "当你感到压力时，通常会？",
-            icon: "🌊",
-            options: [
-                { label: "A. 找人倾诉，寻求支持", score: 8 },
-                { label: "B. 独自消化，做喜欢的事放松", score: 6 },
-                { label: "C. 情绪容易波动，需要较长时间恢复", score: 3 }
-            ]
-        },
-        {
-            text: "在团队合作中，你更愿意扮演什么角色？",
-            icon: "👥",
-            options: [
-                { label: "A. 领导者，统筹协调", score: 10 },
-                { label: "B. 执行者，高效完成任务", score: 7 },
-                { label: "C. 支持者，配合他人", score: 4 }
-            ]
-        }
+        { text: "在社交聚会中，你通常更喜欢？", icon: "🗣️", options: [
+            { label: "A. 成为焦点，主动与很多人交谈", score: 10 },
+            { label: "B. 与少数几个熟悉的人深入交流", score: 5 },
+            { label: "C. 独自观察，很少主动开口", score: 2 }
+        ]},
+        { text: "当面对一个复杂问题时，你更倾向于？", icon: "🧩", options: [
+            { label: "A. 立即行动，边做边调整", score: 9 },
+            { label: "B. 先分析所有可能性再行动", score: 6 },
+            { label: "C. 寻求他人帮助或参考经验", score: 4 }
+        ]},
+        { text: "对于新鲜事物（如新科技、新爱好），你的态度是？", icon: "✨", options: [
+            { label: "A. 充满好奇，乐于尝试", score: 10 },
+            { label: "B. 观望一段时间再决定", score: 6 },
+            { label: "C. 比较排斥，喜欢稳定", score: 2 }
+        ]},
+        { text: "当你感到压力时，通常会？", icon: "🌊", options: [
+            { label: "A. 找人倾诉，寻求支持", score: 8 },
+            { label: "B. 独自消化，做喜欢的事放松", score: 6 },
+            { label: "C. 情绪容易波动，需要较长时间恢复", score: 3 }
+        ]},
+        { text: "在团队合作中，你更愿意扮演什么角色？", icon: "👥", options: [
+            { label: "A. 领导者，统筹协调", score: 10 },
+            { label: "B. 执行者，高效完成任务", score: 7 },
+            { label: "C. 支持者，配合他人", score: 4 }
+        ]}
     ];
 
     let selectedScores = [null, null, null, null, null];
     let optionElements = [];
     let currentResult = null;
+    let partnerWechat = ''; // 从后端获取的合伙人微信号
 
-    // 配置管理 (localStorage) - 与之前相同
+    // 配置管理（本地，仅供无pid时演示用）
     const DEFAULT_CONFIG = {
         wechat: "cbahcjdx",
         address: "南京市浦口区弘阳广场梧桐假日酒店7楼瑞众保险",
@@ -226,10 +205,7 @@
     function loadConfig() {
         try {
             const saved = localStorage.getItem("blp_partner_config");
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                return { ...DEFAULT_CONFIG, ...parsed };
-            }
+            if (saved) return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
         } catch(e) {}
         return { ...DEFAULT_CONFIG };
     }
@@ -251,11 +227,8 @@
         currentConfig = { ...newConfig };
         saveConfigToLocal(currentConfig);
         updateConfigFieldUI();
-        showToast("✅ 个性化配置已保存！下次测评结果页将展示你的专属信息");
-        const resultContainer = document.getElementById('resultContainer');
-        if (resultContainer && !resultContainer.classList.contains('hidden') && currentResult) {
-            renderResult(currentResult);
-        }
+        showToast("✅ 个性化配置已保存！");
+        if (currentResult) renderResult(currentResult);
     }
 
     function resetToDefault() {
@@ -268,10 +241,7 @@
         const newAddress = document.getElementById('configAddress').value.trim();
         const newDeadline = document.getElementById('configDeadline').value.trim();
         const newGiftExtra = document.getElementById('configGiftExtra').value.trim();
-        if (!newWechat) {
-            showToast("微信号不能为空");
-            return;
-        }
+        if (!newWechat) { showToast("微信号不能为空"); return; }
         persistAndApply({
             wechat: newWechat,
             address: newAddress || DEFAULT_CONFIG.address,
@@ -284,89 +254,47 @@
         return currentConfig;
     }
 
-    // 本地统计功能 (localStorage) - 仅用于演示
+    // 本地统计（仅供演示）
     const STORAGE_KEY = "blp_submissions";
-
     function loadSubmissions() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) return JSON.parse(raw);
-        } catch(e) {}
-        return [];
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
     }
-
     function saveSubmission(record) {
-        const submissions = loadSubmissions();
-        submissions.unshift(record);
-        if (submissions.length > 200) submissions.pop();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+        const subs = loadSubmissions();
+        subs.unshift(record);
+        if (subs.length > 200) subs.pop();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
         renderStatsList();
     }
-
     function clearAllSubmissions() {
-        if (confirm("⚠️ 确认清空所有记录吗？此操作不可恢复。")) {
-            localStorage.removeItem(STORAGE_KEY);
-            renderStatsList();
-            showToast("所有记录已清空");
-        }
+        if (confirm("清空所有记录？")) { localStorage.removeItem(STORAGE_KEY); renderStatsList(); showToast("已清空"); }
     }
-
     function renderStatsList() {
-        const submissions = loadSubmissions();
+        const subs = loadSubmissions();
         const container = document.getElementById('statsList');
         if (!container) return;
-        if (submissions.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>';
-            return;
-        }
+        if (subs.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">暂无提交记录</div>'; return; }
         let html = '';
-        submissions.forEach(rec => {
-            html += `
-                <div class="stats-item">
-                    <div class="info">
-                        <strong>👤 ${escapeHtml(rec.name || '')}</strong><br>
-                        📱 ${escapeHtml(rec.phone || '')}<br>
-                        🧩 ${rec.level || ''} · ${rec.totalScore}分<br>
-                        ${rec.title || ''}
-                    </div>
-                    <div class="time">${rec.time || ''}</div>
-                </div>
-            `;
+        subs.forEach(rec => {
+            html += `<div class="stats-item"><div class="info"><strong>👤 ${escapeHtml(rec.name)}</strong><br>📱 ${escapeHtml(rec.phone)}<br>🧩 ${rec.level} · ${rec.totalScore}分<br>${rec.title}</div><div class="time">${rec.time}</div></div>`;
         });
         container.innerHTML = html;
     }
-
     function copyAllRecords() {
-        const submissions = loadSubmissions();
-        if (submissions.length === 0) {
-            showToast("暂无记录可复制");
-            return;
-        }
+        const subs = loadSubmissions();
+        if (!subs.length) { showToast("暂无记录"); return; }
         let text = "📋 性格测试线索统计\n\n";
-        submissions.forEach((rec, idx) => {
-            text += `${idx+1}. 姓名：${rec.name || '未填写'}\n`;
-            text += `   手机号：${rec.phone || '未填写'}\n`;
-            text += `   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n`;
-            text += `   提交时间：${rec.time}\n`;
-            text += `   --------------------\n`;
+        subs.forEach((rec, idx) => {
+            text += `${idx+1}. 姓名：${rec.name}\n   手机号：${rec.phone}\n   测评结果：${rec.level} · ${rec.totalScore}分 (${rec.title})\n   提交时间：${rec.time}\n   --------------------\n`;
         });
-        copyToClipboard(text, "已复制全部线索到剪贴板");
+        copyToClipboard(text, "已复制全部线索");
     }
-
     function recordSubmission(name, phone, totalScore, level, title) {
         if (!name || !phone) return;
-        const record = {
-            name: name.trim(),
-            phone: phone.trim(),
-            totalScore: totalScore,
-            level: level,
-            title: title,
-            time: new Date().toLocaleString('zh-CN')
-        };
-        saveSubmission(record);
+        saveSubmission({ name, phone, totalScore, level, title, time: new Date().toLocaleString('zh-CN') });
     }
 
-    // ---------- 测评渲染 ----------
+    // 渲染题目
     function renderQuestions() {
         const container = document.getElementById('questionsArea');
         if (!container) return;
@@ -390,9 +318,7 @@
                 btn.innerHTML = `<span>${String.fromCharCode(65+optIdx)}</span><span>${opt.label}</span>`;
                 btn.addEventListener('click', () => {
                     selectedScores[idx] = opt.score;
-                    if (optionElements[idx]) {
-                        optionElements[idx].forEach(b => b.classList.remove('selected'));
-                    }
+                    if (optionElements[idx]) optionElements[idx].forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                 });
                 optionsDiv.appendChild(btn);
@@ -404,7 +330,7 @@
         });
     }
 
-    // 根据总分区间判定性格类型（总分范围 2-10 每道题，总分 10-50）
+    // 根据总分判定类型（不再显示分数）
     function getScoreAndLevel() {
         const total = selectedScores.reduce((acc, val) => acc + (val || 0), 0);
         let level = '', title = '', slogan = '';
@@ -431,56 +357,47 @@
     // 上报数据到后端
     async function submitSurveyData(totalScore, level, title, slogan, wechatConfig, name, phone) {
         const payload = {
-            totalScore: totalScore,
-            level: level,
-            title: title,
-            slogan: slogan,
-            wechatConfig: wechatConfig,
-            name: name,
-            phone: phone,
+            totalScore, level, title, slogan, wechatConfig, name, phone,
             partnerToken: partnerToken || null
         };
         try {
-            const response = await fetch('/api/submit', {
+            const res = await fetch('/api/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!response.ok) {
-                const error = await response.json();
-                if (response.status === 409) {
-                    showToast('该手机号已提交过，不可重复提交');
-                    return false;
-                } else {
-                    console.warn('后端上报失败:', error);
-                    showToast('提交失败，请稍后重试');
+            if (!res.ok) {
+                const err = await res.json();
+                if (res.status === 409) {
+                    showToast(err.error || '该手机号已提交过，不可重复提交');
                     return false;
                 }
+                showToast('提交失败，请稍后重试');
+                return false;
             }
             showToast('数据已保存，我们将尽快联系您');
             return true;
         } catch (err) {
-            console.warn('数据上报失败', err);
-            showToast('网络问题，数据未保存，请稍后重试');
+            showToast('网络问题，数据未保存');
             return false;
         }
     }
 
+    // 渲染结果（不显示分数）
     function renderResult(resultData) {
-        const { total, level, title, slogan } = resultData;
+        const { level, title, slogan } = resultData;
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.classList.remove('hidden');
         
         const cfg = getCurrentConfig();
-        const wechatDisplay = cfg.wechat;
+        const wechatDisplay = partnerWechat || cfg.wechat;  // 优先使用合伙人微信号
         const addressDisplay = cfg.address;
         const deadlineDisplay = cfg.deadline;
         const giftExtraDisplay = cfg.giftExtra;
         
         resultContainer.innerHTML = `
             <div class="result-badge">
-                <span>🏅 你的性格指数</span>
-                <span class="result-score">${total}分 / 50分</span>
+                <span>🏅 你的性格类型</span>
             </div>
             <div class="result-title">${title}</div>
             <div class="result-desc">
@@ -494,12 +411,13 @@
             <div class="gift-box">
                 <span>🎁</span> 凭本页面到访<br>
          <strong>${escapeHtml(addressDisplay)}</strong><br>
-                即可领取「精美礼品」一份！<br>
+                即可领取「专属性格报告」一份！<br>
                 <span style="font-size:12px;">📅 活动截止到${escapeHtml(deadlineDisplay)}，请提前预约</span>
             </div>
             <div style="background:#FFF1DB; border-radius:20px; padding:10px 12px; margin:10px 0; font-size:14px;">
-                📢 限时福利：仅限前30名领取            </div>
-            <button class="recruit-btn" id="contactRecruitBtn">📲 登记我的获奖信息</button>
+                📢 限时福利：前30名咨询送「${escapeHtml(giftExtraDisplay)}」
+            </div>
+            <button class="recruit-btn" id="contactRecruitBtn">📲 立即领取完整报告</button>
             <button class="recruit-btn share-btn" id="shareResultBtn">🔄 分享我的性格画像</button>
             <div class="inline-wx">
                 📱 咨询顾问微信：<strong id="dynamicWechatLabel">${escapeHtml(wechatDisplay)}</strong> 
@@ -509,7 +427,6 @@
         `;
 
         let alreadySubmitted = false;
-
         const contactBtn = document.getElementById('contactRecruitBtn');
         if (contactBtn) {
             const newBtn = contactBtn.cloneNode(true);
@@ -527,15 +444,15 @@
                         newBtn.style.opacity = '0.6';
                         newBtn.style.cursor = 'not-allowed';
 
-                        const success = await submitSurveyData(total, level, title, slogan, wechatDisplay, name, phone);
+                        const success = await submitSurveyData(resultData.total, level, title, slogan, wechatDisplay, name, phone);
                         if (success) {
-                            recordSubmission(name, phone, total, level, title);
+                            recordSubmission(name, phone, resultData.total, level, title);
                             showToast(`感谢 ${name} 的参与！我们将尽快联系您 ✨`);
                         } else {
                             showToast(`提交遇到问题，但已记录您的意向，工作人员会联系您。`);
                         }
                     }
-                    const curWechat = getCurrentConfig().wechat;
+                    const curWechat = partnerWechat || getCurrentConfig().wechat;
                     copyToClipboard(curWechat, `已复制顾问微信 ${curWechat}，快去添加好友领取报告！`);
                 });
             });
@@ -547,7 +464,7 @@
             copyWx.parentNode.replaceChild(newCopy, copyWx);
             newCopy.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const curWechat = getCurrentConfig().wechat;
+                const curWechat = partnerWechat || getCurrentConfig().wechat;
                 copyToClipboard(curWechat, `微信号 ${curWechat} 复制成功，期待与你交流！`);
             });
         }
@@ -557,9 +474,9 @@
             const newShare = shareBtn.cloneNode(true);
             shareBtn.parentNode.replaceChild(newShare, shareBtn);
             newShare.addEventListener('click', () => {
-                const { total, level, title } = getScoreAndLevel();
-                const curWechat = getCurrentConfig().wechat;
-                const shareText = `🧠 我的性格画像【${level} · ${title}】得分${total}/50！\n原来我的性格优势在这里💡 快来测测你的性格特质，领取专属成长报告！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取分析。\n👉 立即测试：`;
+                const { level, title } = getScoreAndLevel();
+                const curWechat = partnerWechat || getCurrentConfig().wechat;
+                const shareText = `🧠 我的性格画像【${level} · ${title}】！\n原来我的性格优势在这里💡 快来测测你的性格特质，领取专属成长报告！\n🎁 到访可领好礼，添加微信 ${curWechat} 获取分析。\n👉 立即测试：`;
                 copyToClipboard(shareText, '分享文案已复制📋，快发朋友圈@好友一起挑战，展示你的个性特质！');
             });
         }
@@ -579,19 +496,9 @@
         const confirmHandler = () => {
             const name = nameInput.value.trim();
             const phone = phoneInput.value.trim();
-            if (!name) {
-                showToast('请填写姓名');
-                return;
-            }
-            if (!phone) {
-                showToast('请填写手机号');
-                return;
-            }
-            const phonePattern = /^1[3-9]\d{9}$/;
-            if (!phonePattern.test(phone)) {
-                showToast('请输入正确的11位手机号');
-                return;
-            }
+            if (!name) { showToast('请填写姓名'); return; }
+            if (!phone) { showToast('请填写手机号'); return; }
+            if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的11位手机号'); return; }
             modal.style.display = 'none';
             isShowingModal = false;
             if (callback) callback(name, phone);
@@ -623,13 +530,8 @@
 
     function resetGame() {
         selectedScores = [null, null, null, null, null];
-        if (optionElements) {
-            optionElements.forEach(group => {
-                if (group) group.forEach(btn => btn.classList.remove('selected'));
-            });
-        }
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.classList.add('hidden');
+        if (optionElements) optionElements.forEach(group => group && group.forEach(btn => btn.classList.remove('selected')));
+        document.getElementById('resultContainer').classList.add('hidden');
         currentResult = null;
         showToast('已重置，重新测试看看你的性格吧 👊');
     }
@@ -638,17 +540,13 @@
         const toast = document.getElementById('toastMsg');
         toast.textContent = msg;
         toast.style.opacity = '1';
-        setTimeout(() => { toast.style.opacity = '0'; }, duration);
+        setTimeout(() => toast.style.opacity = '0', duration);
     }
 
     function copyToClipboard(text, successMsg) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(successMsg || '复制成功！');
-            }).catch(() => fallbackCopy(text));
-        } else {
-            fallbackCopy(text);
-        }
+            navigator.clipboard.writeText(text).then(() => showToast(successMsg || '复制成功！')).catch(() => fallbackCopy(text));
+        } else { fallbackCopy(text); }
     }
     function fallbackCopy(text) {
         const textarea = document.createElement('textarea');
@@ -663,18 +561,26 @@
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    // 如果有 pid，获取合伙人信息以更新微信号
+    async function loadPartnerWechat() {
+        if (!partnerToken) return;
+        try {
+            const res = await fetch(`/api/partner/${partnerToken}`);
+            if (res.ok) {
+                const partner = await res.json();
+                partnerWechat = partner.wechat || '';
+                // 如果结果已经渲染，刷新一下微信号显示
+                if (currentResult) renderResult(currentResult);
+            }
+        } catch (err) { console.warn('获取合伙人信息失败', err); }
     }
 
     function bindGlobalEvents() {
         document.getElementById('submitBtn').addEventListener('click', handleSubmit);
         document.getElementById('resetBtn').addEventListener('click', resetGame);
-        
         const toggleBtn = document.getElementById('toggleAdminBtn');
         const adminPanel = document.getElementById('adminPanel');
         if (toggleBtn) {
@@ -692,11 +598,12 @@
         document.getElementById('clearStatsBtn')?.addEventListener('click', clearAllSubmissions);
     }
 
-    function init() {
+    async function init() {
         renderQuestions();
         bindGlobalEvents();
         updateConfigFieldUI();
         renderStatsList();
+        await loadPartnerWechat();
     }
     init();
 </script>
