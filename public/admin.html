@@ -82,9 +82,21 @@
                         <h3 style="margin: 12px 0 8px;">📋 客户列表</h3>
                         ${customers.length === 0 ? '<div class="empty">暂无客户提交记录</div>' : `
                             <table class="customer-table">
-                                <thead><tr><th>姓名</th><th>手机号</th><th>总分</th><th>等级</th><th>提交时间</th></tr></thead>
+                                <thead>
+                                    <tr><th>姓名</th><th>手机号</th><th>年龄</th><th>性别</th><th>总分</th><th>等级</th><th>提交时间</th></tr>
+                                </thead>
                                 <tbody>
-                                    ${customers.map(c => `<tr><td data-label="姓名">${escapeHtml(c.name)}</td><td data-label="手机号">${escapeHtml(c.phone)}</td><td data-label="总分">${c.totalScore}</td><td data-label="等级">${escapeHtml(c.level)}</td><td data-label="提交时间">${c.createdAt}</td></tr>`).join('')}
+                                    ${customers.map(c => `
+                                        <tr>
+                                            <td data-label="姓名">${escapeHtml(c.name)}</td>
+                                            <td data-label="手机号">${escapeHtml(c.phone)}</td>
+                                            <td data-label="年龄">${c.age || ''}</td>
+                                            <td data-label="性别">${c.gender || ''}</td>
+                                            <td data-label="总分">${c.totalScore}</td>
+                                            <td data-label="等级">${escapeHtml(c.level)}</td>
+                                            <td data-label="提交时间">${c.createdAt}</td>
+                                        </tr>
+                                    `).join('')}
                                 </tbody>
                             </table>
                         `}
@@ -95,7 +107,10 @@
         container.innerHTML = html;
     }
 
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
     document.getElementById('refreshBtn').addEventListener('click', fetchStats);
     fetchStats();
 </script>

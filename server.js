@@ -171,7 +171,7 @@ app.delete('/api/partner/:token/records/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// ================== 客户提交测评（新增 age, gender） ==================
+// ================== 客户提交测评 ==================
 app.post('/api/submit', (req, res) => {
     const { totalScore, level, title, slogan, wechatConfig, name, phone, age, gender, partnerToken } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
